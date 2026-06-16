@@ -1,0 +1,80 @@
+.ask-tabs-bar {
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  border-bottom: 1px solid var(--vscode-border);
+  padding: 0 12px;
+  background: var(--vscode-surface);
+}
+
+.ask-context-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+
+.ask-context-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 !important;
+  border-bottom: 2px solid transparent;
+}
+
+.ask-context-tab:global(.active) {
+  border-bottom-color: var(--vscode-accent);
+}
+
+.ask-context-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-text);
+  padding: 8px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ask-context-btn:hover {
+  color: var(--vscode-accent);
+}
+
+.ask-close-btn {
+  background: none;
+  border: none;
+  color: var(--vscode-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 11px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.ask-close-btn:hover {
+  color: var(--vscode-error);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ask-rename-input {
+  font-size: 13px;
+  padding: 4px 6px;
+  width: 120px;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-accent);
+  color: var(--vscode-text);
+  border-radius: 3px;
+}
+
+.ask-new-btn {
+  flex: 0 0 auto;
+  padding: 6px 10px !important;
+  margin-left: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+}

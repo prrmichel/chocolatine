@@ -1,0 +1,307 @@
+.pr-list {
+  font-size: 12px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pr-list-docked {
+  position: relative;
+  z-index: 1;
+  background: var(--vscode-surface);
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.pr-list :global(.panel-header) {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: none;
+}
+
+.pr-list :global(.panel-header) :global(.row) {
+  gap: 6px;
+}
+
+.pr-list :global(.panel-header) select {
+  height: 30px;
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.pr-list :global(.panel-header) :global(.btn) {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.pr-count {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vscode-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--vscode-border);
+  background: var(--vscode-surface-alt);
+}
+
+.pr-list-icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pr-list :global(.list-filter) {
+  padding: 6px 10px;
+  border-bottom: none;
+}
+
+.pr-list-filters {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.author-select {
+  flex: 1;
+  min-width: 0;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.pr-list :global(.list-filter) input {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.pr-list :global(.list-items) {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.pr-list :global(.list-item) {
+  position: relative;
+  padding: 8px 12px;
+  padding-right: 62px;
+}
+
+.pr-list :global(.list-title) {
+  margin-bottom: 2px;
+  font-size: 12px;
+  gap: 6px;
+}
+
+.pr-list :global(.list-meta) {
+  font-size: 11px;
+}
+
+.pr-list :global(.list-badge) {
+  font-size: 10px;
+  padding: 1px 5px;
+}
+
+.reviewers-state-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.review-run-row {
+  position: absolute;
+  right: 10px;
+  top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+}
+
+.reviewer-groups-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding-right: 30px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.reviewer-groups-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.reviewer-group-badge {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reviewer-group-code {
+  color: #78dce8;
+  border-color: rgba(120, 220, 232, 0.5);
+}
+
+.reviewer-group-sql {
+  color: #7CFFB2;
+  border-color: rgba(124, 255, 178, 0.5);
+}
+
+.reviewer-group-functional {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, 0.5);
+}
+
+.reviewer-group-ui {
+  color: #d4a5ff;
+  border-color: rgba(212, 165, 255, 0.5);
+}
+
+.reviewer-group-tablet {
+  color: #9ecbff;
+  border-color: rgba(158, 203, 255, 0.5);
+}
+
+.reviewer-group-devops {
+  color: #ff9e64;
+  border-color: rgba(255, 158, 100, 0.5);
+}
+
+.reviewer-group-generic {
+  color: var(--vscode-muted);
+}
+
+.review-run-count {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--vscode-border);
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 600;
+  flex: 0 0 auto;
+  background: transparent;
+  cursor: pointer;
+}
+
+.review-run-count-has-runs {
+  color: #66BB6A;
+}
+
+.review-run-count-active {
+  color: #0078d4;
+  border-color: transparent;
+}
+
+.review-run-spinner {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 120, 212, 0.2);
+  border-top-color: #0078d4;
+  animation: review-run-spin 0.8s linear infinite;
+  pointer-events: none;
+}
+
+.review-run-count-text {
+  position: relative;
+  transition: opacity 0.12s ease;
+}
+
+.review-run-play-icon {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  font-size: 10px;
+  padding-left: 11px;
+}
+
+.review-run-count:hover .review-run-count-text,
+.review-run-count:focus-visible .review-run-count-text {
+  opacity: 0;
+}
+
+.review-run-count:hover .review-run-play-icon,
+.review-run-count:focus-visible .review-run-play-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* When the list item is selected, adapt colors for blue background */
+:global(.list-item.selected) .review-run-count {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: white;
+}
+
+:global(.list-item.selected) .review-run-count-active {
+  color: white;
+  border-color: transparent;
+}
+
+:global(.list-item.selected) .review-run-spinner {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+}
+
+@keyframes review-run-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── PR Source selector ── */
+.pr-source-selector {
+  padding: 8px 12px 0;
+}
+
+.pr-source-selector select {
+  width: 100%;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+}

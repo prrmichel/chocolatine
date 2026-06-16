@@ -1,0 +1,100 @@
+/* ── Badges ── */
+
+.badge {
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  color: inherit;
+  font-size: 10px;
+  height: 25px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  min-width: 64px;
+  text-align: center;
+}
+
+.badge.draft {
+  background: var(--status-waiting-bg);
+  border-color: var(--status-waiting-border);
+  color: var(--status-waiting-text);
+}
+
+.badge.pr-status-completed {
+  background: var(--status-approved-bg);
+  border-color: var(--status-approved-border);
+  color: var(--status-approved-text);
+  padding-top: 6px;
+}
+
+.badge.pr-status-abandoned {
+  background: var(--status-waiting-bg);
+  border-color: var(--status-waiting-border);
+  color: var(--status-waiting-text);
+  padding-top: 6px;
+}
+
+.badge.tag {
+  background: var(--badge-tag-bg);
+  border-color: var(--badge-tag-border);
+  color: var(--vscode-text);
+}
+
+:is(.badge, .list-badge).status-approved {
+  background: var(--status-approved-bg);
+  border-color: var(--status-approved-border);
+  color: var(--status-approved-text);
+}
+
+:is(.badge, .list-badge).status-waiting {
+  background: var(--status-waiting-bg);
+  border-color: var(--status-waiting-border);
+  color: var(--status-waiting-text);
+}
+
+:is(.badge, .list-badge).status-rejected {
+  background: var(--status-rejected-bg);
+  border-color: var(--status-rejected-border);
+  color: var(--status-rejected-text);
+}
+
+.badge.severity {
+  font-weight: 600;
+}
+
+.badge.severity-error {
+  background: var(--status-rejected-bg);
+  border-color: var(--status-rejected-border);
+  color: var(--status-rejected-text);
+}
+
+.badge.severity-warning {
+  background: var(--status-waiting-bg);
+  border-color: var(--status-waiting-border);
+  color: var(--status-waiting-text);
+}
+
+.badge.severity-info {
+  background: var(--status-info-bg);
+  border-color: var(--status-info-border);
+  color: var(--status-info-text);
+}
+
+.list-badge {
+  background: var(--badge-bg);
+  border: 1px solid var(--badge-border);
+  color: inherit;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.list-badge.target-branch {
+  background: var(--target-branch-bg);
+  border-color: var(--target-branch-border);
+}
+
+.list-badge.review-count {
+  margin-left: var(--spacing-sm);
+  min-width: 20px;
+  padding: 2px 6px;
+  font-size: 10px;
+}

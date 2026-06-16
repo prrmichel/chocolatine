@@ -1,0 +1,48 @@
+/* ── Loading & Error States ── */
+
+.loading {
+  padding: 8px 24px;
+  color: var(--vscode-muted);
+}
+
+.loading-block {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  color: var(--vscode-muted);
+}
+
+.loading-inline {
+  font-size: 13px;
+}
+
+.loading-bar {
+  position: relative;
+  height: 6px;
+  background: var(--vscode-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 40%;
+  background: var(--vscode-accent);
+  animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0% { transform: translateX(-60%); }
+  100% { transform: translateX(160%); }
+}
+
+.error {
+  padding: 8px 24px;
+  color: var(--vscode-error);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+}

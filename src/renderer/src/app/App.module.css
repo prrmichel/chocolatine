@@ -1,0 +1,173 @@
+/* ── App Shell Layout ── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: var(--vscode-surface);
+  border-bottom: 1px solid var(--vscode-border);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon-btn-active {
+  background: var(--vscode-accent);
+  border-color: var(--vscode-accent);
+  color: white;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  position: static;
+  top: auto;
+  z-index: auto;
+  flex: 1 1 auto;
+  overflow-x: auto;
+}
+
+.tab {
+  background: var(--vscode-surface-alt);
+  color: var(--vscode-text);
+  border: 1px solid var(--vscode-border);
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.skills-warning {
+  margin-left: var(--spacing-sm);
+  color: var(--vscode-editorWarning-foreground, #cca700);
+}
+
+.skills-warning-count {
+  margin-left: var(--spacing-xs);
+}
+
+.tab-active {
+  background: var(--vscode-accent);
+  border-color: var(--vscode-accent);
+  color: white;
+}
+
+.content {
+  padding: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grid {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grid :global(.panel-header) {
+  padding-top: 0;
+}
+
+.split-panel {
+  min-width: 220px;
+}
+
+.pr-list-panel {
+  flex: 0 0 auto;
+  width: var(--pr-list-width, 320px);
+  min-width: 220px;
+  max-width: 70vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  background: transparent;
+}
+
+.pr-list-collapsed-panel {
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  border-right: 1px solid var(--vscode-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.pr-list-collapsed-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 8px 6px;
+}
+
+.pr-list-pin-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  background: var(--vscode-surface);
+  color: var(--vscode-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.pr-list-pin-btn:hover {
+  border-color: var(--vscode-button-border);
+  color: var(--vscode-text);
+}
+
+.split-panel-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  min-height: 0;
+  position: relative;
+}
+
+.splitter {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  border-left: 1px solid var(--vscode-border);
+  flex: 0 0 4px;
+}
+
+.splitter:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

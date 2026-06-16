@@ -1,0 +1,46 @@
+/* ── Forms ── */
+
+.form-label {
+  display: grid;
+  gap: var(--spacing-sm);
+  font-size: 12px;
+  color: var(--vscode-muted);
+}
+
+.input,
+.select,
+.textarea {
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  padding: var(--spacing-md) calc(var(--spacing-lg) - var(--spacing-2xs));
+  border-radius: var(--radius-sm);
+}
+
+.textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: 1px solid var(--vscode-accent);
+}
+
+.model-select {
+  height: 36px;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+}
+
+.helper {
+  color: var(--vscode-muted);
+  font-size: 12px;
+}
+
+.helper-compact {
+  margin: var(--spacing-xs) 0;
+}

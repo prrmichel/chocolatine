@@ -1,0 +1,213 @@
+/* ── Review Run / Comment styles ── */
+
+.run-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.run-body {
+  margin-top: 15px;
+  margin-bottom: 15px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.run-title {
+  font-weight: 600;
+}
+
+.run-meta {
+  font-size: 12px;
+  color: var(--vscode-muted);
+}
+
+.comments {
+  display: grid;
+  gap: 12px;
+}
+
+.comment-card {
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  padding: 0;
+  background: var(--vscode-surface-alt);
+  overflow: hidden;
+}
+
+.comment-card.read {
+  opacity: 0.78;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0;
+  font-size: 12px;
+  color: var(--vscode-muted);
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  padding: 12px;
+}
+
+.comment-header::-webkit-details-marker {
+  display: none;
+}
+
+.comment-header-actions-left {
+  justify-content: flex-start;
+}
+
+.comment-header-actions-left .comment-header-actions {
+  margin-left: 0;
+  margin-right: 6px;
+}
+
+.comment-header-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.comment-header-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comment-copy-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.comment-copy-btn:hover:not(:disabled) {
+  background: var(--vscode-surface);
+  border-color: var(--vscode-accent);
+}
+
+.comment-copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.comment-read-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.comment-read-btn:hover {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.comment-read-badge {
+  background: rgba(46, 204, 113, 0.12) !important;
+  border-color: rgba(46, 204, 113, 0.3) !important;
+  color: #7CFFB2 !important;
+}
+
+.comment-expander-icon {
+  margin-top: 2px;
+  transition: transform 0.15s ease;
+}
+
+.comment-card[open] .comment-expander-icon {
+  transform: rotate(180deg);
+}
+
+.comment-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.severity-filter-btn {
+  cursor: pointer;
+}
+
+.severity-filter-btn.active {
+  outline: 1px solid var(--vscode-accent);
+  outline-offset: 1px;
+}
+
+.comment-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.comment-file-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.comment-file-link {
+  background: none;
+  border: none;
+  color: var(--vscode-accent);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.comment-file-link:hover {
+  text-decoration: underline;
+}
+
+.comment-body {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  padding: 8px 12px 12px;
+}
+
+.comment-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.comment-field-label {
+  flex: 0 0 auto;
+  line-height: 1.4;
+}
+
+.comment-field-value {
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.comment-field .comment-copy-btn {
+  align-self: flex-start;
+}

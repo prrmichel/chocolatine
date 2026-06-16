@@ -1,0 +1,155 @@
+:global(.modal).prompt-preview-modal {
+  --modal-width: min(1000px, 96vw);
+  --modal-max-height: 85vh;
+  --modal-gap: 0;
+  --modal-padding: 0;
+  --modal-title-size: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.prompt-preview-modal :global(.modal-header) {
+  flex: 0 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-2xl) var(--spacing-lg);
+}
+
+.prompt-preview-modal :global(.modal-footer) {
+  flex: 0 0 auto;
+  padding: var(--spacing-lg) var(--spacing-2xl) var(--spacing-2xl);
+  border-top: 1px solid var(--vscode-border);
+}
+
+.prompt-preview-modal :global(.modal-body) {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  padding: var(--spacing-md) var(--spacing-2xl);
+}
+
+.prompt-preview-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-xs) 0;
+}
+
+.prompt-preview-details {
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-md);
+  background: var(--vscode-surface-alt);
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.prompt-preview-summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 10px var(--spacing-lg);
+  font-weight: 600;
+  font-size: 13px;
+  user-select: none;
+}
+
+.prompt-preview-summary:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.prompt-preview-summary::-webkit-details-marker {
+  display: none;
+}
+
+.prompt-preview-summary-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+
+.prompt-preview-summary-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.prompt-preview-summary-actions :global(.btn) {
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: 12px;
+}
+
+.prompt-preview-details-body {
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.prompt-preview-chevron {
+  font-size: 10px;
+  color: var(--vscode-muted);
+  transition: transform 0.15s ease;
+}
+
+.prompt-preview-details[open] .prompt-preview-chevron {
+  transform: rotate(180deg);
+}
+
+.prompt-preview-content {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  max-height: 50vh;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--vscode-surface);
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-md);
+  padding: 14px var(--spacing-xl);
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--vscode-text);
+}
+
+/* ── Skills info panel ── */
+
+/* ── Session context badges ── */
+
+.session-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: var(--spacing-md);
+  padding: 1px var(--spacing-sm);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: rgba(79, 195, 247, 0.15);
+  color: #4fc3f7;
+  border: 1px solid rgba(79, 195, 247, 0.3);
+  vertical-align: middle;
+}
+
+.session-badge-new {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-left: var(--spacing-md);
+  padding: 1px var(--spacing-sm);
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: rgba(129, 199, 132, 0.15);
+  color: #81c784;
+  border: 1px solid rgba(129, 199, 132, 0.3);
+  vertical-align: middle;
+}

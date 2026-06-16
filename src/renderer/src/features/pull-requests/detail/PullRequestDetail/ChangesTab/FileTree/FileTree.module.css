@@ -1,0 +1,139 @@
+.tree {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+}
+
+.tree-root {
+  padding-left: 0;
+}
+
+.tree-node {
+  padding-left: 6px;
+}
+
+.tree-label {
+  font-size: 11px;
+  color: var(--vscode-muted);
+  padding: 3px 6px 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* File row: icon | name | badges */
+.tree-file {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--vscode-text);
+  cursor: pointer;
+  padding: 2px 6px;
+  display: grid;
+  grid-template-columns: 15px 1fr auto;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  border-radius: 3px;
+}
+
+.tree-file:hover {
+  background: var(--vscode-surface-alt);
+}
+
+.tree-file-selected {
+  background: var(--vscode-accent);
+  color: white;
+  box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.tree-file-deleted {
+  opacity: 0.72;
+}
+
+/* File name */
+.tree-file-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-file-name-deleted {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* Badges area (right side) */
+.tree-file-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 2px;
+}
+
+/* SCM-style change badge: A / M / D / R */
+.change-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 3px;
+  line-height: 1;
+}
+
+.change-badge-add {
+  composes: change-badge;
+  color: #66bb6a;
+}
+
+.change-badge-edit {
+  composes: change-badge;
+  color: #ffa726;
+}
+
+.change-badge-delete {
+  composes: change-badge;
+  color: #ef5350;
+}
+
+.change-badge-rename {
+  composes: change-badge;
+  color: #42a5f5;
+}
+
+/* Comment count pill */
+.tree-file-comment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--vscode-muted);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 1px 5px;
+}
+
+.tree-file-comment-count i {
+  font-size: 9px;
+}
+
+/* Selected state overrides */
+.tree-file-selected .tree-file-comment-count {
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.tree-file-selected .change-badge-add,
+.tree-file-selected .change-badge-edit,
+.tree-file-selected .change-badge-delete,
+.tree-file-selected .change-badge-rename {
+  color: rgba(255, 255, 255, 0.85);
+}
+

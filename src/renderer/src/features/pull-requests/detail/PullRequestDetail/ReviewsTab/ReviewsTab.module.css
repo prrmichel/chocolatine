@@ -1,0 +1,463 @@
+.review-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.review-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-toolbar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 44px;
+}
+
+.review-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.custom-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.branch-context-card {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  background: var(--vscode-surface-alt);
+}
+
+.branch-context-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.branch-context-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.branch-context-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.branch-context-updated-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--vscode-muted);
+}
+
+.branch-context-updated-label {
+  font-weight: 600;
+}
+
+.branch-context-title {
+  font-weight: 600;
+}
+
+.branch-context-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 88px;
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.branch-context-ready {
+  color: #9be7a2;
+  background: rgba(102, 187, 106, 0.12);
+  border-color: rgba(102, 187, 106, 0.35);
+}
+
+.branch-context-refreshing {
+  color: #80d8ff;
+  background: rgba(79, 195, 247, 0.12);
+  border-color: rgba(79, 195, 247, 0.35);
+}
+
+.branch-context-unavailable {
+  color: #ffcc80;
+  background: rgba(255, 167, 38, 0.12);
+  border-color: rgba(255, 167, 38, 0.35);
+}
+
+.branch-context-blocked {
+  color: #ffd180;
+  background: rgba(255, 171, 64, 0.16);
+  border-color: rgba(255, 171, 64, 0.4);
+}
+
+.branch-context-message {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--vscode-muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.branch-context-branch-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.branch-context-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px;
+  font-size: 12px;
+}
+
+.branch-context-detail {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.branch-context-detail-hash {
+  min-width: 0;
+}
+
+.branch-context-detail-wide {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 720px) {
+  .branch-context-detail-hash {
+    grid-column: span 2;
+  }
+}
+
+.branch-context-meta-label {
+  font-weight: 600;
+  color: var(--vscode-muted);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.branch-context-meta-value {
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.branch-context-meta-value code,
+.branch-context-meta-hash {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--vscode-border);
+}
+
+.branch-context-hash-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.branch-context-hash-row .branch-context-meta-hash {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.branch-context-copy-button {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 2px 6px;
+}
+
+.branch-context-error {
+  color: #ff8a80;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.review-fallback-warning {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 167, 38, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 167, 38, 0.08);
+  color: #ffcc80;
+}
+
+.review-fallback-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.custom-instructions-input {
+  flex: 1 1 auto;
+  padding: 6px 10px;
+  font-size: 12px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  background: var(--vscode-surface-alt);
+  color: var(--vscode-fg);
+  min-height: 34px;
+  max-height: 300px;
+  overflow-y: auto;
+  resize: none;
+  line-height: 1.4;
+}
+
+.detail-review-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+}
+
+.review-selector {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--vscode-muted);
+  flex: 1 1 auto;
+}
+
+.review-selector select {
+  height: 40px;
+  min-height: 40px;
+  padding: 6px 10px;
+}
+
+.review-runs-all {
+  display: grid;
+  gap: 12px;
+}
+
+.review-run-section {
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  background: var(--vscode-surface-alt);
+  overflow: hidden;
+}
+
+.review-run-section-summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.review-run-section-summary::-webkit-details-marker {
+  display: none;
+}
+
+.review-run-section-body {
+  padding: 0 8px 8px 8px;
+}
+
+.review-run-title {
+  font-weight: 600;
+}
+
+.review-run-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.review-run-header-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.review-run-severity-counts {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.review-run-severity-badge {
+  min-width: auto;
+  height: auto;
+  padding: 2px 8px;
+}
+
+.review-run-skill-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.review-run-skill-label {
+  font-size: 11px;
+  color: var(--vscode-muted);
+}
+
+.review-run-skill-badge {
+  min-width: auto;
+  height: auto;
+  padding: 2px 8px;
+}
+
+.review-run-chevron {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--vscode-muted);
+  transition: transform 0.15s ease;
+}
+
+.review-run-section[open] .review-run-chevron {
+  transform: rotate(180deg);
+}
+
+.run-progress-card {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.run-progress-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.run-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--vscode-muted);
+}
+
+.run-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.run-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--vscode-accent);
+  transition: width 300ms ease;
+}
+
+.run-progress-running {
+  background: linear-gradient(90deg, var(--vscode-accent), rgba(79, 195, 247, 0.9));
+}
+
+/* Prompt preview and session badge styles are now in shared/PromptPreviewModal */
+
+.review-metadata {
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  background: rgba(79, 195, 247, 0.08);
+  border: 1px solid rgba(79, 195, 247, 0.2);
+  color: var(--vscode-text);
+  line-height: 1.4;
+}
+
+.review-metadata code {
+  font-size: 10px;
+  padding: 0 3px;
+  background: var(--vscode-surface-alt);
+  border-radius: 3px;
+}
+
+.review-skill-markers {
+  margin-top: 8px;
+}
+
+.used-skills-fallback {
+  margin-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.used-skills-fallback-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.title-review-section {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--vscode-border);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.title-review-row {
+  display: flex;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.title-review-key {
+  font-weight: 600;
+  color: var(--vscode-text-muted);
+  flex-shrink: 0;
+  min-width: 70px;
+}

@@ -1,0 +1,73 @@
+.skill-markers-panel {
+  flex: 0 0 auto;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--vscode-surface-alt);
+}
+
+.skill-markers-panel + .skill-markers-panel {
+  margin-top: 8px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--vscode-surface-alt);
+  border-bottom: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--vscode-editor-inactiveSelectionBackground, rgba(128, 128, 128, 0.1));
+  font-size: 12px;
+}
+
+.name {
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+}
+
+.status-found {
+  background: rgba(129, 199, 132, 0.15);
+  color: #81c784;
+  border-color: rgba(129, 199, 132, 0.3);
+}
+
+.status-missing {
+  background: rgba(229, 115, 115, 0.15);
+  color: #e57373;
+  border-color: rgba(229, 115, 115, 0.3);
+}
+
+.status-pending {
+  background: rgba(255, 213, 79, 0.15);
+  color: #ffd54f;
+  border-color: rgba(255, 213, 79, 0.3);
+}

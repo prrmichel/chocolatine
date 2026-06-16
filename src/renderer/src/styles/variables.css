@@ -1,0 +1,80 @@
+/* ── Variables & Reset ── */
+
+:root {
+  color-scheme: dark;
+  --vscode-bg: #1e1e1e;
+  --vscode-surface: #252526;
+  --vscode-surface-alt: #2d2d30;
+  --vscode-border: #3c3c3c;
+  --vscode-text: #d4d4d4;
+  --vscode-muted: #9da0a6;
+  --vscode-accent: #007acc;
+  --vscode-accent-hover: #1f8ad2;
+  --vscode-accent-pressed: #0063b1;
+  --vscode-success: #89d185;
+  --vscode-error: #f14c4c;
+  --spacing-2xs: 2px;
+  --spacing-xs: 4px;
+  --spacing-sm: 6px;
+  --spacing-md: 8px;
+  --spacing-lg: 12px;
+  --spacing-xl: 16px;
+  --spacing-2xl: 20px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --shadow-modal: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --z-modal: 1000;
+  --surface-hover: #3a3a3d;
+  --button-primary-text: #ffffff;
+  --button-info-bg: rgba(0, 122, 204, 0.2);
+  --button-info-border: rgba(0, 122, 204, 0.6);
+  --button-info-text: #b3dbff;
+  --button-info-bg-hover: rgba(0, 122, 204, 0.35);
+  --button-info-border-hover: rgba(0, 122, 204, 0.8);
+  --button-danger-bg: rgba(220, 53, 69, 0.2);
+  --button-danger-border: rgba(220, 53, 69, 0.6);
+  --button-danger-text: #ffb3bb;
+  --button-danger-bg-hover: rgba(220, 53, 69, 0.35);
+  --button-danger-border-hover: rgba(220, 53, 69, 0.8);
+  --badge-bg: rgba(255, 255, 255, 0.12);
+  --badge-border: rgba(255, 255, 255, 0.2);
+  --badge-tag-bg: rgba(255, 255, 255, 0.08);
+  --badge-tag-border: rgba(255, 255, 255, 0.16);
+  --status-approved-bg: rgba(46, 204, 113, 0.18);
+  --status-approved-border: rgba(46, 204, 113, 0.45);
+  --status-approved-text: #7cffb2;
+  --status-waiting-bg: rgba(245, 124, 0, 0.2);
+  --status-waiting-border: rgba(245, 124, 0, 0.45);
+  --status-waiting-text: #f5b34f;
+  --status-rejected-bg: rgba(241, 76, 76, 0.2);
+  --status-rejected-border: rgba(241, 76, 76, 0.45);
+  --status-rejected-text: #f14c4c;
+  --status-info-bg: rgba(79, 195, 247, 0.18);
+  --status-info-border: rgba(79, 195, 247, 0.4);
+  --status-info-text: #4fc3f7;
+  --target-branch-bg: rgba(0, 122, 204, 0.16);
+  --target-branch-border: rgba(0, 122, 204, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--vscode-bg);
+  color: var(--vscode-text);
+}
+
+#root {
+  min-height: 0;
+}

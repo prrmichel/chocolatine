@@ -1,0 +1,591 @@
+.skillsTab {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+
+.sidebar {
+  flex: 0 0 auto;
+  min-width: 150px;
+  border-right: 1px solid var(--vscode-border);
+  display: flex;
+  flex-direction: column;
+  background: var(--vscode-surface);
+  overflow: hidden;
+}
+
+.sidebarHeader {
+  padding: 12px 12px 8px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sidebarHeader h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.sidebarHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mismatchAlert {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  background: var(--vscode-editor-inactiveSelectionBackground, rgba(128,128,128,0.1));
+}
+
+.scopeFilter {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.scopeFilter select {
+  flex: 1;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.searchFilter {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.searchFilter input {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.bulkActions {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.bulkActionButtons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.showHiddenToggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.showHiddenToggle:hover {
+  opacity: 1;
+}
+
+.hiddenCount {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.skillItemHidden {
+  opacity: 0.45;
+}
+
+/* (syncBar removed – replaced by sync modal) */
+
+.skillList {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.skillGroupHeader {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--vscode-descriptionForeground);
+  letter-spacing: 0.4px;
+}
+
+.skillSubGroupHeader {
+  padding: 6px 12px 4px 20px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.85;
+}
+
+.groupToggle {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.skillSelectCheckbox {
+  margin: 0;
+}
+
+.skillItem {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px 6px 25px;
+  cursor: pointer;
+  gap: 8px;
+  border-left: 3px solid transparent;
+}
+
+.skillItem:hover {
+  background: var(--vscode-list-hoverBackground);
+}
+
+.skillItemActive {
+  background: var(--vscode-list-activeSelectionBackground);
+  border-left-color: var(--vscode-focusBorder);
+  color: var(--vscode-list-activeSelectionForeground);
+}
+
+.skillItemInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skillItemLine1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.skillMismatchIcon {
+  color: var(--vscode-editorWarning-foreground, #cca700);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.skillItemName {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skillItemDesc {
+  font-size: 10px;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-style: italic;
+}
+
+.skillItemOrgs {
+  font-size: 10px;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.skillItemActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+}
+
+.skillItem:hover .skillItemActions,
+.skillItemActive .skillItemActions {
+  opacity: 1;
+}
+
+.neutralIconButton {
+  color: var(--vscode-text);
+}
+
+.neutralIconButton:hover {
+  color: var(--vscode-text);
+}
+
+.dangerIconButton {
+  color: var(--vscode-error);
+}
+
+/* ── Main panel ── */
+
+.main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.mainHeader {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mainHeader h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.markerBadge {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--vscode-descriptionForeground);
+  padding: 1px 5px;
+  background: var(--vscode-editor-inactiveSelectionBackground, rgba(128,128,128,0.1));
+  border-radius: 3px;
+}
+
+.metaRow {
+  padding: 4px 16px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.fileTree {
+  flex: 0 0 auto;
+  overflow-y: auto;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.fileTreeLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 4px;
+}
+
+.fileTreeList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.fileEntry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.fileEntry:hover {
+  color: var(--vscode-textLink-foreground);
+}
+
+.fileEntryActive {
+  font-weight: 600;
+  color: var(--vscode-textLink-activeForeground, var(--vscode-textLink-foreground));
+}
+
+.fileContent {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 12px 16px;
+  border-top: 1px solid var(--vscode-border);
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--vscode-editor-background);
+  color: var(--vscode-editor-foreground);
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+}
+
+/* ── Skill form (modal-like inline) ── */
+
+.skillForm {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.skillForm label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.formHelpText {
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  margin: 0 0 4px;
+}
+
+.formField {
+  flex-shrink: 0;
+}
+
+.formFieldLabel {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.formFieldHint {
+  font-weight: 400;
+}
+
+.skillFormContentLabel {
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.skillForm input,
+.skillForm textarea {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.skillForm textarea {
+  flex: 1 1 auto;
+  min-height: 80px;
+  font-family: monospace;
+  resize: vertical;
+}
+
+.skillFormActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Sync modal (Task 4) ── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--vscode-editor-background, #1e1e1e);
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.modalBody {
+  padding: 16px;
+}
+
+.modalLabel {
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modalSelect {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--vscode-border);
+}
+
+/* ── Synced projects in sync modal ── */
+
+.syncedProjectsSection {
+  margin-bottom: 14px;
+}
+
+.syncedProjectsTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 8px;
+}
+
+.syncedProjectsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.syncedProjectRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--vscode-editor-inactiveSelectionBackground, rgba(128,128,128,0.08));
+  border: 1px solid var(--vscode-border);
+}
+
+.syncedProjectInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.syncedProjectName {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.syncedProjectMeta {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.syncHint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.feedback {
+  padding: 6px 12px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  border-bottom: 1px solid var(--vscode-border);
+  background: var(--vscode-editor-inactiveSelectionBackground, rgba(128,128,128,0.1));
+  white-space: pre-line;
+}
+
+/* ── Resize handles ── */
+
+.resizeHandleH {
+  flex: 0 0 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resizeHandleH:hover,
+.resizeHandleH:active {
+  background: var(--vscode-focusBorder);
+}
+
+.resizeHandleV {
+  flex: 0 0 4px;
+  cursor: row-resize;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resizeHandleV:hover,
+.resizeHandleV:active {
+  background: var(--vscode-focusBorder);
+}
+
+/* ── Organization checkbox list ── */
+
+.orgCheckboxList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.orgCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.orgCheckbox input[type="checkbox"] {
+  margin: 0;
+}

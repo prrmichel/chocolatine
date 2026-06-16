@@ -1,0 +1,25 @@
+name: Documentation improvement
+description: Report unclear or missing documentation
+title: "[Docs] "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation location
+      description: Which page/file is affected?
+      placeholder: docs/getting-started/installation.md
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is unclear or incorrect?
+      placeholder: Describe the gap or inconsistency.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested improvement
+      placeholder: Describe the wording or structure you propose.

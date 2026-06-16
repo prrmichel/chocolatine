@@ -1,0 +1,12 @@
+/*
+ * This file has been decomposed into focused CSS modules.
+ * See index.css for the list of imports.
+ *
+ * - buttons.css   → .btn, .btn-icon, .link
+ * - badges.css    → .badge, .list-badge
+ * - forms.css     → label, input, textarea, .model-select, .helper
+ * - layout.css    → .row, .panel, .list-item, .detail-subtab, etc.
+ * - comments.css  → .comment-card, .comment-header, .run-*, etc.
+ * - modals.css    → .modal-backdrop, .modal, .modal-header/body/footer
+ * - loading.css   → .loading, .loading-bar, .error
+ */

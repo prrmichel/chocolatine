@@ -1,0 +1,741 @@
+/* DiffViewer uses many class names in dynamic render functions.
+   These are kept as global CSS to avoid fragile module conversions. */
+
+/* Override hljs theme: keep its token colors but make background transparent */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.diff-pre {
+  margin: 0;
+  white-space: pre;
+}
+
+.diff-line {
+  display: grid;
+  grid-template-columns: 14px 44px 1fr;
+  gap: 8px;
+  align-items: flex-start;
+  white-space: pre;
+}
+
+.diff-line .diff-lineno {
+  grid-column: 2;
+}
+
+.diff-line .diff-content {
+  grid-column: 3;
+}
+
+.diff-line.has-comment {
+  background: rgba(79, 195, 247, 0.06);
+  border-radius: 3px;
+}
+
+.diff-comment-marker {
+  color: var(--vscode-accent);
+  font-size: 9px;
+  text-align: center;
+  user-select: none;
+  line-height: 1.6;
+  opacity: 0.7;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diff-comment-marker:hover {
+  opacity: 1;
+}
+
+@keyframes highlight-flash {
+  0% { background: rgba(79, 195, 247, 0.35); }
+  100% { background: transparent; }
+}
+
+.diff-line-highlight {
+  animation: highlight-flash 2s ease-out;
+}
+
+.diff-inline-comments {
+  display: block;
+  padding: 6px 0 6px 74px;
+}
+
+.diff-inline-comment {
+  margin-bottom: 6px;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  font-family: var(--vscode-font-family, sans-serif);
+  font-size: 12px;
+  white-space: normal;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.diff-inline-comment.read {
+  opacity: 0.78;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Hide the entire details element when collapsed — the line icon is the toggle */
+details.diff-inline-comment:not([open]) {
+  display: none;
+}
+
+/* Hide the whole comments container (including its \n text nodes) when all panels are collapsed */
+.diff-inline-comments:not(:has(details[open])) {
+  display: none;
+}
+
+.diff-side-row-comments:not(:has(details[open])) {
+  display: none;
+}
+
+.diff-inline-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid transparent;
+}
+
+.diff-inline-comment-header::-webkit-details-marker {
+  display: none;
+}
+
+.diff-inline-comment[open] .diff-inline-comment-header {
+  border-bottom-color: var(--vscode-border);
+}
+
+.diff-inline-comment-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(79, 195, 247, 0.18);
+  color: #4fc3f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.diff-inline-comment-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.diff-inline-comment-author {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vscode-text);
+}
+
+.diff-inline-comment-chevron {
+  font-size: 10px;
+  color: var(--vscode-muted);
+  transition: transform 0.15s ease;
+}
+
+.diff-inline-comment-read-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.diff-inline-comment-read-btn:hover {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.diff-inline-comment[open] .diff-inline-comment-chevron {
+  transform: rotate(180deg);
+}
+
+.diff-inline-comment-body {
+  padding: 10px 12px 10px 48px;
+  display: grid;
+  gap: 8px;
+}
+
+.diff-inline-comment-msg {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--vscode-text);
+}
+
+.diff-inline-comment-msg-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.diff-inline-comment-msg-row .diff-inline-comment-msg {
+  flex: 1 1 auto;
+}
+
+.diff-inline-comment-suggestion {
+  padding: 8px 10px;
+  background: rgba(46, 204, 113, 0.08);
+  border: 1px solid rgba(46, 204, 113, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--vscode-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.diff-inline-comment-solution {
+  padding: 8px 10px;
+  background: rgba(79, 195, 247, 0.08);
+  border: 1px solid rgba(79, 195, 247, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--vscode-text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.diff-inline-comment-suggestion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.diff-inline-copy-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.diff-inline-copy-btn:hover:not(:disabled) {
+  color: var(--vscode-accent);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.diff-inline-copy-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.diff-inline-comment-evidence {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--vscode-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.diff-inline-comment-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.diff-inline-comment-action-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-accent);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.diff-inline-comment-action-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--vscode-accent);
+}
+
+.diff-inline-comment:hover {
+  border-color: rgba(79, 195, 247, 0.3);
+}
+
+.diff-inline-read-badge {
+  background: rgba(46, 204, 113, 0.12) !important;
+  border-color: rgba(46, 204, 113, 0.3) !important;
+  color: #7CFFB2 !important;
+}
+
+.diff-inline-favorite-badge {
+  background: rgba(255, 193, 7, 0.14) !important;
+  border-color: rgba(255, 193, 7, 0.35) !important;
+  color: #ffd166 !important;
+}
+
+.diff-inline-comment.favorite {
+  border-left: 3px solid #ffd166;
+}
+
+.diff-inline-comment-favorite-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.diff-inline-comment-favorite-btn:hover {
+  color: #ffd166;
+  border-color: #ffd166;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.diff-inline-comment-favorite-btn.active {
+  color: #ffd166;
+  border-color: #ffd166;
+}
+
+.diff-inline-fallback-badge {
+  background: rgba(255, 193, 7, 0.14) !important;
+  border-color: rgba(255, 193, 7, 0.35) !important;
+  color: #ffd166 !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Azure DevOps thread comments (inline in diff) */
+.diff-inline-comment.ado-thread {
+  border-left: 3px solid var(--vscode-accent);
+}
+
+.diff-inline-comment.ado-thread.ado-active {
+  border-left-color: #4FC3F7;
+  background: rgba(79, 195, 247, 0.06);
+}
+
+.diff-inline-comment.ado-thread.ado-resolved {
+  border-left-color: #66BB6A;
+  background: rgba(102, 187, 106, 0.04);
+  opacity: 0.7;
+}
+
+.diff-inline-comment.ado-thread.ado-resolved .diff-inline-comment-header {
+  opacity: 0.8;
+}
+
+.ado-badge-active {
+  background: rgba(79, 195, 247, 0.15) !important;
+  border-color: rgba(79, 195, 247, 0.35) !important;
+  color: #4FC3F7 !important;
+}
+
+.ado-badge-resolved {
+  background: rgba(102, 187, 106, 0.15) !important;
+  border-color: rgba(102, 187, 106, 0.35) !important;
+  color: #66BB6A !important;
+}
+
+.ado-thread-comment {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ado-thread-comment:last-child {
+  border-bottom: none;
+}
+
+.ado-thread-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 0.85em;
+}
+
+.ado-thread-comment-date {
+  color: var(--vscode-muted);
+  font-size: 0.9em;
+}
+
+.ado-thread-comment-body {
+  font-size: 0.92em;
+  line-height: 1.5;
+  color: var(--vscode-fg);
+  word-break: break-word;
+}
+
+.ado-thread-comment-likes {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+  color: var(--vscode-muted);
+  flex-wrap: wrap;
+}
+
+.ado-thread-comment-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--vscode-text);
+}
+
+.ado-thread-comment-like i {
+  color: var(--vscode-accent);
+}
+
+.ado-thread-comment-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 6px 0;
+  border-radius: 4px;
+}
+
+.ado-thread-comment-body p {
+  margin: 0 0 4px 0;
+}
+
+.ado-thread-comment-body pre {
+  margin: 6px 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.9em;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.ado-thread-comment-body code {
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.92em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ado-thread-comment-body pre > code {
+  background: none;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+.ado-thread-comment-body a {
+  color: var(--vscode-accent);
+}
+
+/* General (PR-level) Azure DevOps threads */
+.ado-general-threads {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  margin-bottom: 0;
+}
+
+.ado-general-threads-title {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: var(--vscode-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ado-general-thread {
+  margin-bottom: 6px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ado-thread-read {
+  opacity: 0.78;
+}
+
+.ado-thread-read-badge {
+  background: rgba(46, 204, 113, 0.12) !important;
+  border-color: rgba(46, 204, 113, 0.3) !important;
+  color: #7CFFB2 !important;
+}
+
+.ado-thread-read-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ado-thread-read-btn:hover {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ado-general-thread.ado-active {
+  border-left: 3px solid #4FC3F7;
+  background: rgba(79, 195, 247, 0.04);
+}
+
+.ado-general-thread.ado-resolved {
+  border-left: 3px solid #66BB6A;
+  background: rgba(102, 187, 106, 0.03);
+  opacity: 0.7;
+}
+
+.ado-general-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+  list-style: none;
+}
+
+.ado-general-thread-header::-webkit-details-marker {
+  display: none;
+}
+
+.ado-general-thread-author {
+  font-weight: 600;
+}
+
+.ado-thread-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+}
+
+.ado-thread-file-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ado-general-thread-chevron {
+  font-size: 0.7em;
+  transition: transform 0.15s;
+}
+
+.ado-general-thread[open] .ado-general-thread-chevron {
+  transform: rotate(180deg);
+}
+
+.ado-general-thread-body {
+  padding: 4px 10px 8px;
+}
+
+.ado-thread-comment-body .ado-mention {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(0, 122, 204, 0.15);
+  border: 1px solid rgba(0, 122, 204, 0.35);
+  color: var(--vscode-text);
+  font-weight: 600;
+  font-size: 0.9em;
+}
+.diff-lineno {
+  color: var(--vscode-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.diff-content {
+  white-space: pre;
+}
+
+/* Diff prefix char (+/-/ ) */
+.diff-prefix {
+  display: inline;
+  user-select: none;
+  color: transparent; /* context lines: space, invisible */
+}
+
+.diff-line.added .diff-prefix  { color: #3fb950; }
+.diff-line.removed .diff-prefix { color: #f85149; }
+
+.diff-line.hunk .diff-content,
+.diff-line.file .diff-content,
+.diff-line.meta .diff-content {
+  color: var(--vscode-muted);
+}
+
+/* Background-based diff coloring so syntax highlighting shows through */
+.diff-line.added {
+  background: rgba(88, 166, 88, 0.10);
+}
+
+.diff-line.removed {
+  background: rgba(248, 81, 73, 0.10);
+}
+
+/* hljs token color integration — ensure tokens are not clobbered by line color */
+.diff-line .hljs-keyword,
+.diff-line .hljs-built_in,
+.diff-line .hljs-type,
+.diff-line .hljs-literal,
+.diff-line .hljs-number,
+.diff-line .hljs-operator,
+.diff-line .hljs-punctuation,
+.diff-line .hljs-property,
+.diff-line .hljs-interpolation-punctuation {
+  color: inherit; /* let hljs theme drive these */
+}
+
+.diff-side-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.diff-side-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.diff-side-row-meta {
+  grid-template-columns: 1fr;
+}
+
+.diff-side-cell {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  white-space: pre;
+  min-width: 0;
+}
+
+.diff-side-cell-has-comment {
+  grid-template-columns: 14px 44px minmax(0, 1fr);
+  background: rgba(79, 195, 247, 0.06);
+}
+
+.diff-side-comment-marker {
+  color: var(--vscode-accent);
+  font-size: 9px;
+  text-align: center;
+  user-select: none;
+  line-height: 1.6;
+  opacity: 0.7;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diff-side-comment-marker:hover {
+  opacity: 1;
+}
+
+.diff-side-cell-full {
+  grid-template-columns: 1fr;
+  color: var(--vscode-muted);
+}
+
+.diff-side-lineno {
+  color: var(--vscode-muted);
+  text-align: right;
+  user-select: none;
+}
+
+.diff-side-content {
+  overflow-x: auto;
+}
+
+.diff-side-row-comments {
+  display: block;
+  padding: 4px 0 8px 0;
+}
+
+.diff-side-inline-comments {
+  display: block;
+  padding: 0 0 0 52%;
+}
+
+.diff-side-cell-added {
+  background: rgba(88, 166, 88, 0.10);
+  border-radius: 3px;
+}
+
+.diff-side-cell-removed {
+  background: rgba(248, 81, 73, 0.10);
+  border-radius: 3px;
+}
+
+.diff-show-all-btn {
+  display: block;
+  width: 100%;
+  padding: 8px;
+  margin: 0;
+  background: var(--bg-secondary, #1e1e2e);
+  border: 1px solid var(--border, #333);
+  color: var(--text-link, #58a6ff);
+  cursor: pointer;
+  font-size: 12px;
+  text-align: center;
+}
+.diff-show-all-btn:hover {
+  background: var(--bg-tertiary, #2a2a3a);
+}

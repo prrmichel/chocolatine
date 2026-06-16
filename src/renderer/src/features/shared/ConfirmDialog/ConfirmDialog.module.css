@@ -1,0 +1,28 @@
+.confirm-dialog {
+  --modal-width: min(460px, 90vw);
+  --modal-gap: var(--spacing-lg);
+  --modal-title-size: 16px;
+  --modal-footer-gap: var(--spacing-md);
+}
+
+.confirm-body p {
+  margin: 0;
+  line-height: 1.5;
+  color: var(--vscode-text);
+}
+
+.confirm-footer {
+  --modal-footer-gap: var(--spacing-md);
+}
+
+.confirm-word-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.confirm-word-label {
+  font-size: 13px;
+  color: var(--vscode-muted);
+}

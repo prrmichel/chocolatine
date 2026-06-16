@@ -1,0 +1,133 @@
+/* ── Layout: Panels, Lists, Tabs ── */
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.muted {
+  color: var(--vscode-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.empty {
+  color: var(--vscode-muted);
+  padding: 16px;
+}
+
+.panel {
+  background: var(--vscode-surface);
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.panel.list {
+  padding: 0;
+  overflow: hidden;
+}
+
+.panel-header {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+/* ── List Items ── */
+
+.list-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 12px 16px;
+  color: var(--vscode-text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.list-item:hover {
+  background: var(--vscode-surface-alt);
+}
+
+.list-item.selected {
+  background: var(--vscode-accent);
+  color: white;
+}
+
+.list-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.list-meta {
+  color: var(--vscode-muted);
+  font-size: 12px;
+}
+
+.list-item.selected .list-meta {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.list-filter,
+.changes-filter {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.list-filter input,
+.changes-filter input {
+  flex: 1;
+  min-width: 0;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+/* ── Detail Subtabs ── */
+
+.detail-subtabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0;
+  border-bottom: none;
+  padding: 0 0 6px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.detail-subtab {
+  background: transparent;
+  border: none;
+  color: var(--vscode-muted);
+  font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+}
+
+.detail-subtab.active {
+  color: var(--vscode-text);
+  border-bottom-color: var(--vscode-accent);
+}

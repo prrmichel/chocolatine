@@ -1,0 +1,104 @@
+{
+  "name": "chocolatine",
+  "version": "0.1.0",
+  "description": "Windows desktop app for Azure DevOps pull request review with GitHub Copilot.",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prrmichel/chocolatine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prrmichel/chocolatine/issues"
+  },
+  "homepage": "https://github.com/prrmichel/chocolatine#readme",
+  "type": "module",
+  "main": "out/main/index.js",
+  "scripts": {
+    "predev": "node scripts/ensure-electron.mjs",
+    "dev": "set OPEN_DEVTOOLS=1&& set OPEN_DEVTOOLS_MODE=detach&& electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "node --test --experimental-strip-types",
+    "gate:publication-local": "npm run lint && npm run build",
+    "package": "electron-builder",
+    "icons": "node generate-icons.cjs",
+    "setup": "node setup-resources.js",
+    "postinstall": "node scripts/rebuild-native.mjs"
+  },
+  "engines": {
+    "node": ">=20 <27"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
+    "@github/copilot-sdk": "^1.0.1",
+    "better-sqlite3": "^12.10.1",
+    "diff": "^8.0.3",
+    "highlight.js": "^11.11.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^41.7.2",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.2"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "^0.8.13",
+    "esbuild": "^0.28.1"
+  },
+  "allowScripts": {
+    "allow": [
+      "better-sqlite3",
+      "electron",
+      "electron-winstaller",
+      "esbuild",
+      "sharp"
+    ],
+    "better-sqlite3@12.10.0": true,
+    "better-sqlite3@12.10.1": true,
+    "electron@41.7.2": true,
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.27.3": true,
+    "esbuild@0.28.1": true,
+    "sharp@0.34.5": true
+  },
+  "build": {
+    "appId": "com.prrmichel.chocolatine",
+    "productName": "Chocolatine",
+    "icon": "resources/icon.ico",
+    "win": {
+      "icon": "resources/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico"
+    },
+    "files": [
+      "out/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    }
+  }
+}

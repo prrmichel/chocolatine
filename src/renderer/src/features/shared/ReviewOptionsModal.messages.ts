@@ -1,0 +1,33 @@
+/** User-facing labels for ReviewOptionsModal */
+
+export const LABELS = {
+  reviewOptions: 'Review Options',
+  reviewPrompt: 'Review Prompt',
+  noPromptOption: 'No PR review prompt',
+  noPromptHelp: 'Create one in Prompt Library or insert a starter template.',
+  model: 'Model',
+  createNewSession: 'Create new session (do not reuse existing)',
+  launchStrategyHeading: 'Review launch strategy',
+  launchStrategyDefault: 'Standard launch: branch-aware review',
+  launchStrategyHint: 'When you start the review, Chocolatine prepares or refreshes the PR worktree, runs the review against that PR-scoped branch context, and only falls back to diff-only if preparation fails.',
+  launchStrategyStatusReady: 'Ready',
+  launchStrategyStatusBlocked: 'Needs setup',
+  launchStrategyRequiresRootFolder: 'Standard branch-aware launch is unavailable until you configure a review worktree root folder in Settings > Preferences.',
+  launchStrategyDiffOnlyHint: 'You can still enable diff-only override below for this run.',
+  advancedHeading: 'Advanced',
+  showAdvancedOptions: 'Show advanced options',
+  diffOnlyOverride: 'Run this review in diff-only mode',
+  diffOnlyHint: 'Skips PR worktree preparation and reviews only the PR diff. Use this for troubleshooting or a deliberately degraded run.',
+  skills: 'Skills',
+  selectAllSkills: 'Select all',
+  unselectAllSkills: 'Unselect all',
+  skillNameColumn: 'Name',
+  skillScopeColumn: 'Scope',
+  noSkillsAvailable: 'No skills available. Sync or create skills in the Skills Library tab.',
+  openPreferences: 'Open Settings > Preferences',
+  modelCatalogUnavailable: 'Copilot model catalog is unavailable.',
+  cancel: 'Cancel',
+  runReview: 'Run Review',
+  runReviewPromptRequired: 'Create a "PR Review" prompt in Prompt Library before launching a review.',
+  runReviewBlocked: 'Configure a review worktree root folder or enable diff-only override for this run.'
+} as const;

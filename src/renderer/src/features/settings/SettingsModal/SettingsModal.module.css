@@ -1,0 +1,315 @@
+/* SettingsModal tabs */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--vscode-border);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--vscode-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 16px;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab:hover {
+  color: var(--vscode-text);
+}
+
+.tab-active {
+  color: var(--vscode-text);
+  border-bottom-color: var(--vscode-accent);
+  font-weight: 600;
+}
+
+/* Fixed-height scrollable tab content — prevents modal resizing on tab switch */
+.tabContent {
+  height: 630px;
+  overflow-y: auto;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding-right: 4px;
+}
+
+/* Wider/taller modal for settings */
+.settingsModal {
+  --modal-width: min(1080px, 92vw);
+  --modal-height: min(810px, 92vh);
+  --modal-max-width: 92vw;
+  --modal-max-height: 92vh;
+}
+
+/* Database folder row: input fills width, button docked right */
+.folderRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.folderRow input {
+  flex: 1;
+  min-width: 0;
+}
+
+.folderRow button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.connection-result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.connection-ok {
+  background: rgba(70, 185, 90, 0.12);
+  color: #46b95a;
+  border: 1px solid rgba(70, 185, 90, 0.3);
+}
+
+.connection-err {
+  background: rgba(220, 80, 80, 0.12);
+  color: #e06060;
+  border: 1px solid rgba(220, 80, 80, 0.3);
+}
+
+/* ── Preferences Tab Layout ── */
+
+.prefSections {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.prefSection {
+  padding: 14px 0 14px 0;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.prefSection:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.prefSectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--vscode-muted);
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Setting row: label on left, control on right */
+.prefRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  margin-bottom: 8px;
+}
+
+.prefRow:last-child {
+  margin-bottom: 0;
+}
+
+.prefLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.prefLabel span:first-child {
+  font-size: 13px;
+  color: var(--vscode-text);
+}
+
+.prefHint {
+  font-size: 11px;
+  color: var(--vscode-muted);
+}
+
+.prefInputNumber {
+  width: 68px !important;
+  min-width: 68px !important;
+  flex: 0 0 68px !important;
+  text-align: center;
+}
+
+.prefSelect {
+  flex: 0 0 auto;
+  max-width: 440px;
+  min-width: 120px;
+}
+
+.prefRowModel {
+  justify-content: space-between;
+}
+
+.prefLabelCompact {
+  flex: 0 0 250px;
+  max-width: 250px;
+}
+
+.prefModelSelect {
+  width: min(100%, 440px);
+}
+
+.prefModelSelectWrap {
+  margin-left: auto;
+  flex: 0 1 440px;
+  min-width: 0;
+}
+
+.prefFolderRow {
+  flex: 0 1 420px;
+  min-width: 260px;
+}
+
+/* Segmented control for diff mode */
+.prefSegmented {
+  display: inline-flex;
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.prefSegBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--vscode-surface);
+  color: var(--vscode-muted);
+  border: none;
+  padding: 5px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+  white-space: nowrap;
+}
+
+.prefSegBtn + .prefSegBtn {
+  border-left: 1px solid var(--vscode-border);
+}
+
+.prefSegBtn:hover {
+  background: var(--vscode-surface-alt);
+  color: var(--vscode-text);
+}
+
+.prefSegBtnActive {
+  background: var(--vscode-button-bg);
+  color: var(--vscode-button-fg);
+}
+
+.prefSegBtnActive:hover {
+  background: var(--vscode-button-bg);
+  color: var(--vscode-button-fg);
+}
+
+/* ── ADO Tab: Organizations & PR Sources ── */
+
+.adoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--vscode-border);
+}
+
+.adoSection:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.adoSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.adoSectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--vscode-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adoCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--vscode-border);
+  border-radius: 6px;
+  background: var(--vscode-surface-alt);
+}
+
+.adoCardRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+}
+
+.adoCardLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--vscode-text);
+  white-space: nowrap;
+}
+
+.adoCardMuted {
+  font-size: 12px;
+  color: var(--vscode-muted);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adoCardActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tokenLink {
+  font-size: 12px;
+  color: var(--vscode-accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tokenLink:hover {
+  text-decoration: underline;
+}

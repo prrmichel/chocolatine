@@ -1,0 +1,57 @@
+/* ── Modal Dialog ── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.modal {
+  width: var(--modal-width, min(520px, 90vw));
+  min-height: var(--modal-min-height, auto);
+  height: var(--modal-height, auto);
+  max-width: var(--modal-max-width, none);
+  max-height: var(--modal-max-height, none);
+  background: var(--vscode-surface);
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  display: grid;
+  gap: var(--modal-gap, var(--spacing-xl));
+  padding: var(--modal-padding, var(--spacing-2xl) calc(var(--spacing-2xl) + var(--spacing-xs)));
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: var(--modal-title-size, 18px);
+}
+
+.modal-body {
+  display: grid;
+  gap: var(--modal-body-gap, var(--spacing-lg));
+}
+
+.modal-body label {
+  display: grid;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--vscode-muted);
+}
+
+.modal-body input {
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  padding: var(--spacing-md) calc(var(--spacing-lg) - var(--spacing-2xs));
+  border-radius: var(--radius-md);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--modal-footer-gap, var(--spacing-lg));
+}

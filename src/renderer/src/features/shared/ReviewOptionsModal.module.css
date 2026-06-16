@@ -1,0 +1,230 @@
+.reviewOptionsModal {
+  --modal-width: min(1000px, 90vw);
+  --modal-min-height: min(860px, 90vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.reviewOptionsBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.reviewOptionsBody .inlineCheckboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+}
+
+.reviewOptionsBody .checkboxInput {
+  width: auto;
+  margin: 0;
+  flex: 0 0 auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.checkboxText {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.workspaceFieldset {
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.workspaceLegend {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 var(--spacing-xs);
+}
+
+.workspaceHint {
+  font-size: 12px;
+  color: var(--vscode-muted);
+  margin: 0;
+}
+
+.workspaceRow {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.branchContextStatusCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-sm);
+  background: var(--vscode-editor-background);
+}
+
+.branchContextStatusRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.branchContextStatusLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--vscode-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.branchContextStatusValue {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.branchContextStatusMessage {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.branchContextPathBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.branchContextPath {
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.branchContextFallback {
+  font-size: 12px;
+  color: var(--vscode-muted);
+}
+
+.workspaceInput {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.workspaceBrowseBtn {
+  white-space: nowrap;
+}
+
+.skillsFieldset {
+  border: 1px solid var(--vscode-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.skillsLegend {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 var(--spacing-xs);
+}
+
+.skillsToolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: var(--spacing-sm);
+}
+
+.emptyState {
+  font-size: 12px;
+  color: var(--vscode-muted);
+  margin: 0;
+}
+
+.skillsList {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--vscode-border);
+  border-radius: 8px;
+  background: var(--vscode-surface-alt);
+  overflow: auto;
+}
+
+.skillsListHeader {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--vscode-border);
+  background: var(--vscode-surface);
+  color: var(--vscode-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.skillRow {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 8px 10px;
+  border-top: 1px solid var(--vscode-border);
+  transition: background-color 120ms ease;
+}
+
+.skillRow:first-of-type {
+  border-top: 0;
+}
+
+.skillRow:hover {
+  background: var(--vscode-hover);
+}
+
+.skillRowSelected {
+  background: var(--vscode-selected-bg);
+}
+
+.skillRowSelected:hover {
+  background: var(--vscode-selected-bg);
+}
+
+.skillRow > span:first-of-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skillScope {
+  font-size: 11px;
+  color: var(--vscode-muted);
+  white-space: nowrap;
+  text-align: left;
+}
+
+.confirmIcon {
+  margin-right: var(--spacing-sm);
+}

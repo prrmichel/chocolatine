@@ -1,0 +1,50 @@
+.user-comments-tab {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.user-comments-filter {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--vscode-border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-comments-filter input {
+  flex: 1;
+  min-width: 0;
+  background: var(--vscode-surface-alt);
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-text);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.filter-action {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.filter-action:hover:not(:disabled) {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.filter-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

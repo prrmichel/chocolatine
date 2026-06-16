@@ -1,0 +1,80 @@
+.ask-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.ask-input-area {
+  flex: 0 0 auto;
+  border-top: none;
+  padding: 12px 24px;
+  background: var(--vscode-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 140px;
+}
+
+.ask-input-splitter {
+  height: 6px;
+  cursor: row-resize;
+  background: transparent;
+  border-top: 1px solid var(--vscode-border);
+  flex: 0 0 auto;
+}
+
+.ask-input-splitter:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ask-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ask-input-main {
+  flex: 1;
+}
+
+.ask-input-row.ask-input-main {
+  align-items: stretch;
+}
+
+.ask-model-select {
+  width: auto;
+  max-width: 360px;
+}
+
+.ask-textarea {
+  flex: 1;
+  height: 100%;
+  resize: none;
+  min-height: 40px;
+  max-height: none;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.ask-input-buttons {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  padding-bottom: 1px;
+  align-self: flex-end;
+}
+
+.ask-input-buttons :global(.btn):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ask-speech-error {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #ffb3bb;
+}
