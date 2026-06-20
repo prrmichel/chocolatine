@@ -75,6 +75,48 @@ export const buildCommentReadKey = (
     ? `${runId}::${comment.id}`
     : `${runId}::${normalizePath(comment.file ?? '')}::${comment.lineNew ?? ''}::${comment.lineOld ?? ''}::${(comment.message ?? '').slice(0, 120)}::${commentIndex}`;
 
+export const buildAdoCommentDraft = (
+  comment: CopilotReviewComment,
+  runNumber: number,
+  fallbackFilePath?: string | null
+): string => {
+  const lines: string[] = ['### Review comment', ''];
+
+  const metadata: string[] = [];
+  if (comment.severity) metadata.push(`- Severity: ${comment.severity}`);
+  if (comment.category) metadata.push(`- Category: ${comment.category}`);
+  if (comment.reviewArea) metadata.push(`- Area: ${comment.reviewArea}`);
+
+  const filePath = comment.file?.trim() || fallbackFilePath?.trim() || '';
+  if (filePath) metadata.push(`- File: \`${filePath}\``);
+  if (comment.lineNew && comment.lineNew > 0) metadata.push(`- Line: ${comment.lineNew}`);
+
+  lines.push(...metadata, '');
+
+  if (comment.message?.trim()) {
+    lines.push(comment.message.trim(), '');
+  }
+  if (comment.evidence?.trim()) {
+    lines.push('**Evidence**', '', `> ${comment.evidence.trim().replace(/\n/g, '\n> ')}`, '');
+  }
+  if (comment.suggestion?.trim()) {
+    lines.push('**Suggestion**', '', comment.suggestion.trim(), '');
+  }
+  if (comment.solution?.trim()) {
+    lines.push('**Solution**', '', comment.solution.trim(), '');
+  }
+
+  return lines.join('\n').trim();
+};
+
+export const formatSentTimestamp = (value: string): string => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString();
+};
+
 // ── File icons ──
 
 export const getFileIconClass = (name: string): string => {

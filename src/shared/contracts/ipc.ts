@@ -20,6 +20,8 @@ export const IpcChannels = {
   AZURE_GET_PULL_REQUEST_FILE_CHANGES: 'azure:getPullRequestFileChanges',
   AZURE_GET_SINGLE_FILE_DIFF: 'azure:getSingleFileDiff',
   AZURE_GET_PULL_REQUEST_THREADS: 'azure:getPullRequestThreads',
+  AZURE_CREATE_PULL_REQUEST_THREAD: 'azure:createPullRequestThread',
+  AZURE_UPDATE_PULL_REQUEST_THREAD_STATUS: 'azure:updatePullRequestThreadStatus',
   AZURE_ASSIGN_REVIEWER_TO_PULL_REQUEST: 'azure:assignReviewerToPullRequest',
   AZURE_TEST_CONNECTION: 'azure:testConnection',
   AZURE_TEST_ORG_CONNECTION: 'azure:testOrgConnection',

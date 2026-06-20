@@ -1,6 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  CopilotReviewComment,
   CopilotReviewResult,
   PullRequestDetails,
   PullRequestFileDiff,
@@ -14,6 +13,7 @@ import { getTaskType } from '@renderer/utils/severity';
 import { arePathsEquivalent, buildCommentReadKey, findLineByEvidence, getDisplayedNewLineInfo, normalizePath } from './PullRequestDetail.helpers';
 import { api } from '@renderer/services/api';
 import { useLocalStorageRecord } from '@renderer/hooks/useLocalStorageRecord';
+import type { ReviewCommentEntry } from './ChangesTab/ChangesTab.types';
 import SummaryTab from './SummaryTab/SummaryTab';
 import ChangesTab from './ChangesTab/ChangesTab';
 import WorkItemsTab from './WorkItemsTab/WorkItemsTab';
@@ -49,7 +49,8 @@ interface PullRequestDetailProps {
   onQueueReview: (overrideModel?: string, forceNewSession?: boolean, selectedSkillIds?: string[], overridePromptId?: string, reviewSessionOptions?: import('@shared/types/models').ReviewSessionOptions) => void;
   currentProjectKeys?: string[];
   currentOrganizationId?: string | null;
-  onReloadDetails: () => void;
+  onReloadDetails: () => Promise<void>;
+  onReloadThreads: () => Promise<void>;
   onOpenPullRequest: () => void;
   onOpenWorkItem: (id: number) => void;
   onAssignToSelf: () => Promise<void>;
@@ -64,6 +65,7 @@ interface PullRequestDetailProps {
   onWorkItemsSummaryPromptExtraChange: (value: string) => void;
   onGenerateWorkItemsSummary: () => void;
   onDeleteReviewRuns: (jobId?: string | null) => void;
+  onError?: (message: string) => void;
 }
 
 type DetailTab = 'summary' | 'changes' | 'work-items' | 'reviews' | 'follow-up' | 'user-comments';
@@ -95,6 +97,7 @@ export default function PullRequestDetail({
   currentProjectKeys,
   currentOrganizationId,
   onReloadDetails,
+  onReloadThreads,
   onOpenPullRequest,
   onOpenWorkItem,
   onAssignToSelf,
@@ -108,19 +111,24 @@ export default function PullRequestDetail({
   workItemsSummaryPromptExtra,
   onWorkItemsSummaryPromptExtraChange,
   onGenerateWorkItemsSummary,
-  onDeleteReviewRuns
+  onDeleteReviewRuns,
+  onError
 }: PullRequestDetailProps) {
   const [detailTab, setDetailTab] = useState<DetailTab>('summary');
   const [collapsedRunIds, setCollapsedRunIds] = useState<Set<string>>(new Set());
   const [pendingFollowUpContextId, setPendingFollowUpContextId] = useState<string | null>(null);
   const [changesFollowUpPanelOpen, setChangesFollowUpPanelOpen] = useState(false);
   const [changesFollowUpPanelHeight, setChangesFollowUpPanelHeight] = useState(450);
+  const [sentComments, setSentComments] = useState<Record<string, string>>({});
+  const [updatingThreadIds, setUpdatingThreadIds] = useState<number[]>([]);
   const pendingScrollRef = useRef<number | null>(null);
+  const sentCommentsHydratedRef = useRef(false);
   const isDraft = details?.isDraft ?? summary?.isDraft ?? false;
 
   const readStateStorageKey = summary ? `pr-review-read-comments-v1:${summary.id}` : null;
   const favoriteStateStorageKey = summary ? `pr-review-favorite-comments-v1:${summary.id}` : null;
   const threadReadStorageKey = summary ? `pr-user-comments-read-v1:${summary.id}` : null;
+  const sentCommentStateStorageKey = summary ? `pr-ado-sent-comments-v1:${summary.id}` : null;
 
   const readComments = useLocalStorageRecord(readStateStorageKey);
   const favoriteComments = useLocalStorageRecord(favoriteStateStorageKey);
@@ -164,7 +172,7 @@ export default function PullRequestDetail({
   );
 
   const allFileComments = useMemo(() => {
-    const map = new Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>();
+    const map = new Map<number, ReviewCommentEntry[]>();
     if (!selectedDiff) return map;
 
     const selectedNorm = normalizePath(selectedDiff.path);
@@ -212,6 +220,37 @@ export default function PullRequestDetail({
     }).catch(() => setCollapsedRunIds(new Set()));
   }, [collapsedRunsDbKey]);
 
+  useEffect(() => {
+    sentCommentsHydratedRef.current = false;
+    if (!sentCommentStateStorageKey) {
+      setSentComments({});
+      sentCommentsHydratedRef.current = true;
+      return;
+    }
+
+    api.getUIPref(sentCommentStateStorageKey).then((raw) => {
+      try {
+        const parsed = raw ? JSON.parse(raw) : {};
+        setSentComments(parsed && typeof parsed === 'object' ? parsed as Record<string, string> : {});
+      } catch {
+        setSentComments({});
+      } finally {
+        sentCommentsHydratedRef.current = true;
+      }
+    }).catch(() => {
+      setSentComments({});
+      sentCommentsHydratedRef.current = true;
+    });
+  }, [sentCommentStateStorageKey]);
+
+  useEffect(() => {
+    if (!sentCommentStateStorageKey || !sentCommentsHydratedRef.current) {
+      return;
+    }
+    const serialized = Object.keys(sentComments).length > 0 ? JSON.stringify(sentComments) : null;
+    void api.setUIPref(sentCommentStateStorageKey, serialized);
+  }, [sentComments, sentCommentStateStorageKey]);
+
   const toggleRunCollapsed = (runId: string) => {
     setCollapsedRunIds((prev) => {
       const next = new Set(prev);
@@ -235,6 +274,40 @@ export default function PullRequestDetail({
   const toggleThreadRead = (threadId: number) => readThreads.toggle(String(threadId));
   const markThreadsRead = (ids: number[]) => readThreads.setKeys(ids.map(String));
   const markThreadsUnread = (ids: number[]) => readThreads.removeKeys(ids.map(String));
+  const getCommentSentAt = (commentKey: string) => sentComments[commentKey] ?? null;
+  const markCommentSent = async (commentKey: string, sentAt: string) => {
+    setSentComments((prev) => ({
+      ...prev,
+      [commentKey]: sentAt
+    }));
+  };
+  const isThreadStatusUpdating = useCallback((threadId: number) => updatingThreadIds.includes(threadId), [updatingThreadIds]);
+  const toggleThreadResolved = useCallback(async (thread: PullRequestThread) => {
+    const repositoryId = details?.repositoryId ?? null;
+    const pullRequestId = summary?.id ?? null;
+    if (!repositoryId || !pullRequestId) {
+      onError?.('The pull request details are still loading. Wait a moment and try again.');
+      return;
+    }
+    if (updatingThreadIds.includes(thread.id)) {
+      return;
+    }
+
+    setUpdatingThreadIds((prev) => [...prev, thread.id]);
+    try {
+      await api.updatePullRequestThreadStatus({
+        repositoryId,
+        pullRequestId,
+        threadId: thread.id,
+        status: thread.isResolved ? 'active' : 'resolved'
+      });
+      await onReloadThreads();
+    } catch (error) {
+      onError?.(error instanceof Error ? error.message : 'Unable to update the pull request comment.');
+    } finally {
+      setUpdatingThreadIds((prev) => prev.filter((id) => id !== thread.id));
+    }
+  }, [details?.repositoryId, onError, onReloadThreads, summary?.id, updatingThreadIds]);
 
   const handleOpenFollowUpFromComment = async (runId: string) => {
     const job = reviewJobs.find((j) => j.id === runId);
@@ -314,7 +387,7 @@ export default function PullRequestDetail({
           >
             <i className="fa-solid fa-list-check" aria-hidden="true" />
           </button>
-          <button className="btn" onClick={onReloadDetails} disabled={!summary} aria-label={LABELS.reload} title={LABELS.reload}>
+          <button className="btn" onClick={() => { void onReloadDetails(); }} disabled={!summary} aria-label={LABELS.reload} title={LABELS.reload}>
             <i className="fa-solid fa-rotate-right" aria-hidden="true" />
           </button>
           <button className="btn" onClick={onOpenPullRequest} disabled={!summary} aria-label={LABELS.openPullRequest} title={LABELS.openPullRequest}>
@@ -382,13 +455,19 @@ export default function PullRequestDetail({
                   onMarkCommentsUnread={markCommentsUnread}
                   isThreadRead={isThreadRead}
                   onToggleThreadRead={toggleThreadRead}
+                  onToggleThreadResolved={toggleThreadResolved}
+                  isThreadStatusUpdating={isThreadStatusUpdating}
                   pullRequest={summary}
+                  pullRequestRepositoryId={details?.repositoryId ?? null}
                   reviewJobs={reviewRuns.map((r) => r.job)}
                   modelOptions={modelOptions}
                   followUpPanelOpen={changesFollowUpPanelOpen}
                   followUpPanelHeight={changesFollowUpPanelHeight}
                   onFollowUpPanelOpenChange={setChangesFollowUpPanelOpen}
                   onFollowUpPanelHeightChange={setChangesFollowUpPanelHeight}
+                  onRefreshThreads={onReloadThreads}
+                  getCommentSentAt={getCommentSentAt}
+                  onMarkCommentSent={markCommentSent}
                 />
               )}
 
@@ -397,6 +476,8 @@ export default function PullRequestDetail({
                   threads={prThreads}
                   isThreadRead={isThreadRead}
                   onToggleThreadRead={toggleThreadRead}
+                  onToggleThreadResolved={toggleThreadResolved}
+                  isThreadStatusUpdating={isThreadStatusUpdating}
                   onMarkThreadsRead={markThreadsRead}
                   onMarkThreadsUnread={markThreadsUnread}
                   onNavigateToLine={navigateToLine}

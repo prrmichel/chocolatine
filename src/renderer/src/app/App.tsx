@@ -125,6 +125,7 @@ export default function App() {
   const loadPullRequests = usePullRequestStore((state) => state.loadPullRequests);
   const selectAndLoadDetails = usePullRequestStore((state) => state.selectAndLoadDetails);
   const reloadDetails = usePullRequestStore((state) => state.reloadDetails);
+  const reloadThreads = usePullRequestStore((state) => state.reloadThreads);
   const getSelectedSummary = usePullRequestStore((state) => state.getSelectedSummary);
   const getFilteredPullRequests = usePullRequestStore((state) => state.getFilteredPullRequests);
 
@@ -726,6 +727,7 @@ export default function App() {
                 currentProjectKeys={currentProjectKeys}
                 currentOrganizationId={currentOrganizationId}
                 onReloadDetails={reloadDetails}
+                onReloadThreads={reloadThreads}
                 onOpenPullRequest={openPullRequest}
                 onOpenWorkItem={openWorkItem}
                 onAssignToSelf={handleAssignToSelf}
@@ -740,6 +742,7 @@ export default function App() {
                 onWorkItemsSummaryPromptExtraChange={setWorkItemsSummaryPromptExtra}
                 onGenerateWorkItemsSummary={generateWorkItemsSummary}
                 onDeleteReviewRuns={handleDeleteReviewsForSelectedPr}
+                onError={handleError}
               />
             </div>
           </div>

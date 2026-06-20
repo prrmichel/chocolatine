@@ -7,6 +7,8 @@ interface UserCommentsTabProps {
   threads: PullRequestThread[];
   isThreadRead: (threadId: number) => boolean;
   onToggleThreadRead: (threadId: number) => void;
+  onToggleThreadResolved: (thread: PullRequestThread) => Promise<void>;
+  isThreadStatusUpdating: (threadId: number) => boolean;
   onMarkThreadsRead: (threadIds: number[]) => void;
   onMarkThreadsUnread: (threadIds: number[]) => void;
   onNavigateToLine: (filePath: string, line?: number) => void;
@@ -35,6 +37,8 @@ export default function UserCommentsTab({
   threads,
   isThreadRead,
   onToggleThreadRead,
+  onToggleThreadResolved,
+  isThreadStatusUpdating,
   onMarkThreadsRead,
   onMarkThreadsUnread,
   onNavigateToLine
@@ -93,6 +97,8 @@ export default function UserCommentsTab({
           threads={filteredThreads}
           isThreadRead={isThreadRead}
           onToggleThreadRead={onToggleThreadRead}
+          onToggleThreadResolved={onToggleThreadResolved}
+          isThreadStatusUpdating={isThreadStatusUpdating}
           showFilePath
           onNavigateToLine={onNavigateToLine}
         />

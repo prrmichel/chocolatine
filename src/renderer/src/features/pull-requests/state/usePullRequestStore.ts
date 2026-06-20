@@ -46,12 +46,13 @@ interface PullRequestState {
   switchPrSource: (id: string) => Promise<void>;
   loadPullRequests: (creatorId?: string) => Promise<void>;
   loadDetails: (id: number) => Promise<void>;
+  reloadThreads: () => Promise<void>;
   /** Lazily load diff text for a single file (if not already cached). */
   loadSingleDiff: (filePath: string) => Promise<PullRequestFileDiff | null>;
   /** Build promptDiffText from all cached diffs. */
   buildPromptDiffText: () => string;
   selectAndLoadDetails: (id: number) => void;
-  reloadDetails: () => void;
+  reloadDetails: () => Promise<void>;
 
   /** Computed: selected summary object */
   getSelectedSummary: () => PullRequestSummary | null;
@@ -209,6 +210,20 @@ export const usePullRequestStore = create<PullRequestState>((set, get) => ({
     }
   },
 
+  reloadThreads: async () => {
+    const { selectedId, details } = get();
+    if (!selectedId || !details?.repositoryId || typeof api.getPullRequestThreads !== 'function') {
+      return;
+    }
+
+    try {
+      const threads = await api.getPullRequestThreads(details.repositoryId, selectedId);
+      set({ prThreads: threads });
+    } catch {
+      // Keep the current thread list when refresh fails.
+    }
+  },
+
   buildPromptDiffText: () => {
     const { diffs } = get();
     return diffs.map((diff) => `File: ${diff.path}\n${diff.diffText}`).join('\n\n');
@@ -219,10 +234,10 @@ export const usePullRequestStore = create<PullRequestState>((set, get) => ({
     void get().loadDetails(id);
   },
 
-  reloadDetails: () => {
+  reloadDetails: async () => {
     const { selectedId, loadDetails } = get();
     if (selectedId) {
-      void loadDetails(selectedId);
+      await loadDetails(selectedId);
     }
   },
 

@@ -6,7 +6,7 @@
 
 The Pull Requests tab is the default view and the central hub of Chocolatine. It combines a filterable PR list on the left with a full-featured detail workspace on the right. From here you can load PRs from Azure DevOps, inspect code changes, run Copilot reviews, read human discussion threads, and hold follow-up conversations — all without leaving the screen.
 
-The detail workspace is organized into six subtabs, each focused on a different aspect of the PR: Summary, Changes, Work Items, Reviews, Follow-up, and User Comments.
+The detail workspace is organized into six subtabs, each focused on a different aspect of the PR: Summary, Changes, Work Items, Reviews, Follow-up, and User Comments. The PR detail area now also supports richer collaboration workflows such as sending Copilot findings back to Azure DevOps as markdown comments and resolving or reactivating Azure DevOps threads directly inside the app.
 
 ## How to Access
 
@@ -43,11 +43,11 @@ When a PR is selected, the detail workspace loads with header actions and six su
 | Subtab | Purpose | Details |
 |--------|---------|---------|
 | **Summary** | PR metadata and review history overview | [Summary Tab](summary-tab.md) |
-| **Changes** | Code diffs with inline AI and human comments | [Changes Tab](changes-tab.md) |
+| **Changes** | Code diffs with inline AI and human comments, send-to-ADO, and thread actions | [Changes Tab](changes-tab.md) |
 | **Work Items** | Linked work items and AI summaries | [Work Items Tab](work-items-tab.md) |
 | **Reviews** | Run and inspect Copilot code reviews | [Reviews Tab](reviews-tab.md) |
 | **Follow-up** | Persistent chat on review results | [Follow-up Tab](follow-up-tab.md) |
-| **User Comments** | Azure DevOps discussion threads | [User Comments Tab](user-comments-tab.md) |
+| **User Comments** | Azure DevOps discussion threads with read/resolve/reactivate actions | [User Comments Tab](user-comments-tab.md) |
 
 ## Walkthrough
 

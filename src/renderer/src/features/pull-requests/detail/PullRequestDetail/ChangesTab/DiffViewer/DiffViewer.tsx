@@ -23,10 +23,13 @@ import ruby from 'highlight.js/lib/languages/ruby';
 import php from 'highlight.js/lib/languages/php';
 import ini from 'highlight.js/lib/languages/ini';
 import 'highlight.js/styles/github-dark-dimmed.css';
-import { CopilotReviewComment, PullRequestThread } from '@shared/types/models';
+import { PullRequestThread } from '@shared/types/models';
 import { getSeverityClass } from '@renderer/utils/severity';
 import { copyToClipboard } from '@renderer/utils/clipboard';
-import { normalizePath } from '../../PullRequestDetail.helpers';
+import CommentMarkdown from '@renderer/features/shared/CommentMarkdown/CommentMarkdown';
+import { formatSentTimestamp, normalizePath } from '../../PullRequestDetail.helpers';
+import { LABELS } from '../ChangesTab.messages';
+import type { ReviewCommentEntry } from '../ChangesTab.types';
 import { getLanguageFromPath } from '@renderer/utils/fileIcons';
 import './DiffViewer.css';
 
@@ -59,7 +62,7 @@ interface DiffViewerProps {
   diffText: string;
   filePath?: string;
   viewMode?: 'inline' | 'side';
-  lineComments?: Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>;
+  lineComments?: Map<number, ReviewCommentEntry[]>;
   onGoToReview?: () => void;
   isCommentRead?: (commentKey: string) => boolean;
   onToggleCommentRead?: (commentKey: string) => void;
@@ -67,9 +70,13 @@ interface DiffViewerProps {
   onToggleCommentFavorite?: (commentKey: string) => void;
   onOpenFollowUp?: (runId: string) => void;
   onAskComment?: (text: string) => void;
+  onSendToAdo?: (entry: ReviewCommentEntry) => void;
+  getCommentSentAt?: (commentKey: string) => string | null;
   lineThreads?: Map<number, PullRequestThread[]>;
   isThreadRead?: (threadId: number) => boolean;
   onToggleThreadRead?: (threadId: number) => void;
+  onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>;
+  isThreadStatusUpdating?: (threadId: number) => boolean;
 }
 
 const highlightCache = new Map<string, string>();
@@ -117,9 +124,13 @@ export default memo(function DiffViewer({
   onToggleCommentFavorite,
   onOpenFollowUp,
   onAskComment,
+  onSendToAdo,
+  getCommentSentAt,
   lineThreads,
   isThreadRead,
-  onToggleThreadRead
+  onToggleThreadRead,
+  onToggleThreadResolved,
+  isThreadStatusUpdating
 }: DiffViewerProps) {
   const [showAll, setShowAll] = useState(false);
   const language = filePath ? getLanguageFromPath(filePath) : undefined;
@@ -138,7 +149,7 @@ export default memo(function DiffViewer({
     return (
       <>
         <div className="diff-side-grid">
-          {renderSideBySideDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, lineThreads, isThreadRead, onToggleThreadRead)}
+          {renderSideBySideDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating)}
         </div>
         {isTruncated && (
           <button type="button" className="diff-show-all-btn" onClick={() => setShowAll(true)}>
@@ -150,7 +161,7 @@ export default memo(function DiffViewer({
   }
   return (
     <>
-      <pre className="diff-pre">{renderDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, lineThreads, isThreadRead, onToggleThreadRead)}</pre>
+      <pre className="diff-pre">{renderDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating)}</pre>
       {isTruncated && (
         <button type="button" className="diff-show-all-btn" onClick={() => setShowAll(true)}>
           Show all {lineCount.toLocaleString()} lines ({(lineCount - MAX_INITIAL_LINES).toLocaleString()} more)
@@ -165,6 +176,8 @@ interface AdoThreadsSectionProps {
   threads: PullRequestThread[];
   isThreadRead?: (threadId: number) => boolean;
   onToggleThreadRead?: (threadId: number) => void;
+  onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>;
+  isThreadStatusUpdating?: (threadId: number) => boolean;
   showFilePath?: boolean;
   onNavigateToLine?: (filePath: string, line?: number) => void;
   onAskComment?: (text: string) => void;
@@ -175,6 +188,8 @@ export function AdoThreadsSection({
   threads,
   isThreadRead,
   onToggleThreadRead,
+  onToggleThreadResolved,
+  isThreadStatusUpdating,
   showFilePath,
   onNavigateToLine,
   onAskComment
@@ -185,121 +200,25 @@ export function AdoThreadsSection({
       <h4 className="ado-general-threads-title">
         <i className="fa-solid fa-comments" aria-hidden="true" /> {title} ({threads.length})
       </h4>
-      {threads.map((thread) => (
-        <details
-          key={`gen-thread-${thread.id}`}
-          className={`ado-general-thread ${thread.isResolved ? 'ado-resolved' : 'ado-active'} ${isThreadRead?.(thread.id) ? 'ado-thread-read' : ''}`}
-          open={isThreadRead ? !isThreadRead(thread.id) : !thread.isResolved}
-        >
-          <summary className="ado-general-thread-header">
-            <span className="ado-thread-controls">
-              {onToggleThreadRead && (
-                <button
-                  type="button"
-                  className="ado-thread-read-btn"
-                  onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleThreadRead(thread.id); }}
-                  title={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
-                  aria-label={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
-                >
-                  <i className={`fa-solid ${isThreadRead?.(thread.id) ? 'fa-envelope-open' : 'fa-envelope'}`} aria-hidden="true" />
-                </button>
-              )}
-              <i className="fa-solid fa-chevron-down ado-general-thread-chevron" aria-hidden="true" />
-            </span>
-            <span className="ado-general-thread-author">
-              {thread.comments[0]?.author ?? 'Unknown'}
-            </span>
-            {showFilePath && thread.filePath && onNavigateToLine ? (
-              <span className="ado-thread-file-actions">
-                <button
-                  type="button"
-                  className="comment-file-link"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onNavigateToLine(thread.filePath!, thread.line);
-                  }}
-                  title="Go to file in Changes"
-                >
-                  <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" style={{ fontSize: 10, marginRight: 4 }} />
-                  {normalizePath(thread.filePath)}{thread.line ? `:${thread.line}` : ''}
-                </button>
-                <button
-                  type="button"
-                  className="comment-copy-btn"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    void copyText(thread.filePath!);
-                  }}
-                  title="Copy file path"
-                  aria-label="Copy file path"
-                >
-                  <i className="fa-regular fa-copy" aria-hidden="true" />
-                </button>
-              </span>
-            ) : showFilePath && thread.filePath ? (
-              <span className="badge tag" title={thread.filePath}>
-                {normalizePath(thread.filePath)}
-              </span>
-            ) : null}
-            {thread.line && <span className="badge tag">Line {thread.line}</span>}
-            <span className={`badge tag ${thread.isResolved ? 'ado-badge-resolved' : 'ado-badge-active'}`}>
-              {thread.isResolved ? 'Resolved' : 'Active'}
-            </span>
-            {thread.comments.length > 1 && (
-              <span className="badge tag">{thread.comments.length} replies</span>
-            )}
-          </summary>
-          <div className="ado-general-thread-body">
-            {thread.comments.map((tc) => (
-              <div key={tc.id} className="ado-thread-comment">
-                <div className="ado-thread-comment-header">
-                  <strong>{tc.author}</strong>
-                  <span className="ado-thread-comment-date">
-                    {new Date(tc.publishedDate).toLocaleDateString(undefined, {
-                      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                    })}
-                  </span>
-                </div>
-                <div className="ado-thread-comment-body" dangerouslySetInnerHTML={{ __html: processAdoContent(tc.content) }} />
-                {tc.likedBy && tc.likedBy.length > 0 && (
-                  <div className="ado-thread-comment-likes">
-                    {tc.likedBy.map((name) => (
-                      <span key={name} className="ado-thread-comment-like">
-                        <i className="fa-regular fa-thumbs-up" aria-hidden="true" />
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {onAskComment && (
-              <div className="diff-inline-comment-actions">
-                <button
-                  type="button"
-                  className="diff-inline-comment-action-btn"
-                  onClick={() => {
-                    const text = thread.comments.map((tc) => `${tc.author}: ${tc.content}`).join('\n');
-                    onAskComment(text);
-                  }}
-                  title="Ask Copilot about this thread"
-                >
-                  <i className="fa-solid fa-comment-dots" aria-hidden="true" /> Ask me
-                </button>
-              </div>
-            )}
-          </div>
-        </details>
-      ))}
+      <div className="ado-general-thread-list">
+        {threads.map((thread) => renderInlineThread(
+          thread,
+          isThreadRead,
+          onToggleThreadRead,
+          onAskComment,
+          showFilePath,
+          onNavigateToLine,
+          onToggleThreadResolved,
+          isThreadStatusUpdating
+        ))}
+      </div>
     </div>
   );
 }
 
 // ── Private helpers ──
 
-/** Post-process ADO thread comment HTML to render markdown code fences that ADO left unconverted. */
+/** Post-process ADO thread comment HTML to render markdown-like code blocks ADO left unconverted. */
 const processAdoContent = (html: string): string => {
   if (!html) return '';
   // Convert triple-backtick code blocks to <pre><code>
@@ -331,7 +250,7 @@ const copyText = async (text: string) => {
 const renderDiffLines = (
   diffText: string,
   language: string | undefined,
-  lineComments?: Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>,
+  lineComments?: Map<number, ReviewCommentEntry[]>,
   onGoToReview?: () => void,
   isCommentRead?: (commentKey: string) => boolean,
   onToggleCommentRead?: (commentKey: string) => void,
@@ -339,9 +258,13 @@ const renderDiffLines = (
   onToggleCommentFavorite?: (commentKey: string) => void,
   onOpenFollowUp?: (runId: string) => void,
   onAskComment?: (text: string) => void,
+  onSendToAdo?: (entry: ReviewCommentEntry) => void,
+  getCommentSentAt?: (commentKey: string) => string | null,
   lineThreads?: Map<number, PullRequestThread[]>,
   isThreadRead?: (threadId: number) => boolean,
-  onToggleThreadRead?: (threadId: number) => void
+  onToggleThreadRead?: (threadId: number) => void,
+  onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>,
+  isThreadStatusUpdating?: (threadId: number) => boolean
 ) => {
   const lines = diffText.split('\n');
   let newLine = 0;
@@ -438,9 +361,9 @@ const renderDiffLines = (
           {'\n'}
         </span>,
         <span key={`${index}-comments`} className="diff-inline-comments">
-          {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment))}
+          {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment, false, undefined, onToggleThreadResolved, isThreadStatusUpdating))}
           {hasComments && commentsHere!.map((entry, ci) =>
-            renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment)
+            renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt)
           )}
           {index < lines.length - 1 ? '\n' : ''}
         </span>
@@ -470,7 +393,7 @@ const renderDiffLines = (
 const renderSideBySideDiffLines = (
   diffText: string,
   language: string | undefined,
-  lineComments?: Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>,
+  lineComments?: Map<number, ReviewCommentEntry[]>,
   onGoToReview?: () => void,
   isCommentRead?: (commentKey: string) => boolean,
   onToggleCommentRead?: (commentKey: string) => void,
@@ -478,9 +401,13 @@ const renderSideBySideDiffLines = (
   onToggleCommentFavorite?: (commentKey: string) => void,
   onOpenFollowUp?: (runId: string) => void,
   onAskComment?: (text: string) => void,
+  onSendToAdo?: (entry: ReviewCommentEntry) => void,
+  getCommentSentAt?: (commentKey: string) => string | null,
   lineThreads?: Map<number, PullRequestThread[]>,
   isThreadRead?: (threadId: number) => boolean,
-  onToggleThreadRead?: (threadId: number) => void
+  onToggleThreadRead?: (threadId: number) => void,
+  onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>,
+  isThreadStatusUpdating?: (threadId: number) => boolean
 ) => {
   const lines = diffText.split('\n');
   let oldLine = 0;
@@ -578,9 +505,9 @@ const renderSideBySideDiffLines = (
         mainRow,
         <div key={`side-${index}-comments`} className="diff-side-row-comments">
           <div className="diff-side-inline-comments">
-            {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment))}
+            {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment, false, undefined, onToggleThreadResolved, isThreadStatusUpdating))}
             {hasComments && commentsHere!.map((entry, ci) =>
-              renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment)
+              renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt)
             )}
           </div>
         </div>
@@ -591,85 +518,155 @@ const renderSideBySideDiffLines = (
   });
 };
 
-const renderInlineThread = (thread: PullRequestThread, isThreadRead?: (threadId: number) => boolean, onToggleThreadRead?: (threadId: number) => void, onAskComment?: (text: string) => void) => (
-  <details
-    key={`thread-${thread.id}`}
-    className={`diff-inline-comment ado-thread ${thread.isResolved ? 'ado-resolved' : 'ado-active'} ${isThreadRead?.(thread.id) ? 'ado-thread-read' : ''}`}
-    open={isThreadRead ? !isThreadRead(thread.id) : !thread.isResolved}
-  >
-    <summary className="diff-inline-comment-header">
-      <span className="diff-inline-comment-avatar">
-        <i className="fa-solid fa-comment-dots" aria-hidden="true" />
-      </span>
-      <span className="diff-inline-comment-meta">
-        <span className="diff-inline-comment-author">
-          {thread.comments[0]?.author ?? 'Unknown'}
+const renderInlineThread = (
+  thread: PullRequestThread,
+  isThreadRead?: (threadId: number) => boolean,
+  onToggleThreadRead?: (threadId: number) => void,
+  onAskComment?: (text: string) => void,
+  showFilePath?: boolean,
+  onNavigateToLine?: (filePath: string, line?: number) => void,
+  onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>,
+  isThreadStatusUpdating?: (threadId: number) => boolean
+) => {
+  const isUpdating = isThreadStatusUpdating?.(thread.id) ?? false;
+  const resolveTitle = thread.isResolved ? LABELS.reactivateComment : LABELS.resolveComment;
+
+  return (
+    <details
+      key={`thread-${thread.id}`}
+      className={`diff-inline-comment ado-thread ${thread.isResolved ? 'ado-resolved' : 'ado-active'} ${isThreadRead?.(thread.id) ? 'ado-thread-read' : ''}`}
+      open={isThreadRead ? !isThreadRead(thread.id) : !thread.isResolved}
+    >
+      <summary className="diff-inline-comment-header">
+        <span className="diff-inline-comment-avatar">
+          <i className="fa-solid fa-comment-dots" aria-hidden="true" />
         </span>
-        <span className={`badge tag ${thread.isResolved ? 'ado-badge-resolved' : 'ado-badge-active'}`}>
-          {thread.isResolved ? 'Resolved' : 'Active'}
-        </span>
-        {thread.comments.length > 1 && (
-          <span className="badge tag">{thread.comments.length} replies</span>
-        )}
-      </span>
-      {onToggleThreadRead && (
-        <button
-          type="button"
-          className="diff-inline-comment-read-btn"
-          onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleThreadRead(thread.id); }}
-          title={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
-          aria-label={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
-        >
-          <i className={`fa-solid ${isThreadRead?.(thread.id) ? 'fa-envelope-open' : 'fa-envelope'}`} aria-hidden="true" />
-        </button>
-      )}
-      <i className="fa-solid fa-chevron-down diff-inline-comment-chevron" aria-hidden="true" />
-    </summary>
-    <div className="diff-inline-comment-body">
-      {thread.comments.map((tc) => (
-        <div key={tc.id} className="ado-thread-comment">
-          <div className="ado-thread-comment-header">
-            <strong>{tc.author}</strong>
-            <span className="ado-thread-comment-date">
-              {new Date(tc.publishedDate).toLocaleDateString(undefined, {
-                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-              })}
+        <span className="diff-inline-comment-meta">
+          <span className="diff-inline-comment-author">
+            {thread.comments[0]?.author ?? 'Unknown'}
+          </span>
+          {showFilePath && thread.filePath && onNavigateToLine ? (
+            <span className="ado-thread-file-actions">
+              <button
+                type="button"
+                className="comment-file-link"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onNavigateToLine(thread.filePath!, thread.line);
+                }}
+                title="Go to file in Changes"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" style={{ fontSize: 10, marginRight: 4 }} />
+                {normalizePath(thread.filePath)}{thread.line ? `:${thread.line}` : ''}
+              </button>
+              <button
+                type="button"
+                className="comment-copy-btn"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  void copyText(thread.filePath!);
+                }}
+                title="Copy file path"
+                aria-label="Copy file path"
+              >
+                <i className="fa-regular fa-copy" aria-hidden="true" />
+              </button>
             </span>
-          </div>
-          <div className="ado-thread-comment-body" dangerouslySetInnerHTML={{ __html: processAdoContent(tc.content) }} />
-          {tc.likedBy && tc.likedBy.length > 0 && (
-            <div className="ado-thread-comment-likes">
-              {tc.likedBy.map((name) => (
-                <span key={name} className="ado-thread-comment-like">
-                  <i className="fa-regular fa-thumbs-up" aria-hidden="true" />
-                  {name}
-                </span>
-              ))}
-            </div>
+          ) : showFilePath && thread.filePath ? (
+            <span className="badge tag" title={thread.filePath}>
+              {normalizePath(thread.filePath)}
+            </span>
+          ) : null}
+          {thread.line && <span className="badge tag">Line {thread.line}</span>}
+          <span className={`badge tag ${thread.isResolved ? 'ado-badge-resolved' : 'ado-badge-active'}`}>
+            {thread.isResolved ? 'Resolved' : 'Active'}
+          </span>
+          {thread.comments.length > 1 && (
+            <span className="badge tag">{thread.comments.length} replies</span>
           )}
-        </div>
-      ))}
-      {onAskComment && (
-        <div className="diff-inline-comment-actions">
+        </span>
+        {onToggleThreadResolved && (
           <button
             type="button"
-            className="diff-inline-comment-action-btn"
-            onClick={() => {
-              const text = thread.comments.map((tc) => `${tc.author}: ${tc.content}`).join('\n');
-              onAskComment(text);
+            className={`diff-inline-comment-thread-status-btn ${thread.isResolved ? 'active' : ''}`}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              void onToggleThreadResolved(thread);
             }}
-            title="Ask Copilot about this thread"
+            title={resolveTitle}
+            aria-label={resolveTitle}
+            disabled={isUpdating}
           >
-            <i className="fa-solid fa-comment-dots" aria-hidden="true" /> Ask me
+            <i className={`fa-solid ${isUpdating ? 'fa-spinner fa-spin' : thread.isResolved ? 'fa-arrow-rotate-left' : 'fa-check'}`} aria-hidden="true" />
           </button>
-        </div>
-      )}
-    </div>
-  </details>
-);
+        )}
+        {onToggleThreadRead && (
+          <button
+            type="button"
+            className="diff-inline-comment-read-btn"
+            onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleThreadRead(thread.id); }}
+            title={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
+            aria-label={isThreadRead?.(thread.id) ? 'Mark as unread' : 'Mark as read'}
+          >
+            <i className={`fa-solid ${isThreadRead?.(thread.id) ? 'fa-envelope-open' : 'fa-envelope'}`} aria-hidden="true" />
+          </button>
+        )}
+        <i className="fa-solid fa-chevron-down diff-inline-comment-chevron" aria-hidden="true" />
+      </summary>
+      <div className="diff-inline-comment-body">
+        {thread.comments.map((tc) => (
+          <div key={tc.id} className="ado-thread-comment">
+            <div className="ado-thread-comment-header">
+              <strong>{tc.author}</strong>
+              <span className="ado-thread-comment-date">
+                {new Date(tc.publishedDate).toLocaleDateString(undefined, {
+                  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                })}
+              </span>
+            </div>
+            <CommentMarkdown
+              content={tc.content}
+              mode="auto"
+              transformHtml={processAdoContent}
+              className="ado-thread-comment-body"
+            />
+            {tc.likedBy && tc.likedBy.length > 0 && (
+              <div className="ado-thread-comment-likes">
+                {tc.likedBy.map((name) => (
+                  <span key={name} className="ado-thread-comment-like">
+                    <i className="fa-regular fa-thumbs-up" aria-hidden="true" />
+                    {name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        {onAskComment && (
+          <div className="diff-inline-comment-actions">
+            <button
+              type="button"
+              className="diff-inline-comment-action-btn"
+              onClick={() => {
+                const text = thread.comments.map((tc) => `${tc.author}: ${tc.content}`).join('\n');
+                onAskComment(text);
+              }}
+              title="Ask Copilot about this thread"
+            >
+              <i className="fa-solid fa-comment-dots" aria-hidden="true" /> Ask me
+            </button>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+};
 
 const renderInlineComment= (
-  entry: { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean },
+  entry: ReviewCommentEntry,
   ci: number,
   isCommentRead?: (commentKey: string) => boolean,
   onToggleCommentRead?: (commentKey: string) => void,
@@ -677,137 +674,156 @@ const renderInlineComment= (
   isCommentFavorite?: (commentKey: string) => boolean,
   onToggleCommentFavorite?: (commentKey: string) => void,
   onOpenFollowUp?: (runId: string) => void,
-  onAskComment?: (text: string) => void
-) => (
-  <details
-    key={ci}
-    className={`diff-inline-comment ${isCommentRead?.(entry.commentKey) ? 'read' : ''} ${isCommentFavorite?.(entry.commentKey) ? 'favorite' : ''}`}
-    open={!isCommentRead?.(entry.commentKey)}
-  >
-    <summary className="diff-inline-comment-header">
-      <span className="diff-inline-comment-avatar">
-        <i className="fa-solid fa-robot" aria-hidden="true" />
-      </span>
-      <span className="diff-inline-comment-meta">
-        <span className="diff-inline-comment-author">Copilot · Run {entry.runNumber}</span>
-        {entry.isFallbackPlacement && (
-          <span className="badge tag diff-inline-fallback-badge" title="This comment could not be mapped to an exact line and was placed at the first displayed line.">
-            <i className="fa-solid fa-map-pin" aria-hidden="true" /> File-level
-          </span>
-        )}
-        {isCommentFavorite?.(entry.commentKey) && <span className="badge tag diff-inline-favorite-badge">To follow</span>}
-        <span className={`badge severity ${getSeverityClass(entry.comment.severity ?? '')}`}>
-          {entry.comment.severity ?? 'Info'}
+  onAskComment?: (text: string) => void,
+  onSendToAdo?: (entry: ReviewCommentEntry) => void,
+  getCommentSentAt?: (commentKey: string) => string | null
+) => {
+  const sentAt = getCommentSentAt?.(entry.commentKey) ?? null;
+  const sendTitle = sentAt ? LABELS.sentToAdoAt(formatSentTimestamp(sentAt)) : LABELS.sendToAdoTitle;
+
+  return (
+    <details
+      key={ci}
+      className={`diff-inline-comment ${isCommentRead?.(entry.commentKey) ? 'read' : ''} ${isCommentFavorite?.(entry.commentKey) ? 'favorite' : ''}`}
+      open={!isCommentRead?.(entry.commentKey)}
+    >
+      <summary className="diff-inline-comment-header">
+        <span className="diff-inline-comment-avatar">
+          <i className="fa-solid fa-robot" aria-hidden="true" />
         </span>
-        {entry.comment.reviewArea && <span className="badge tag">{entry.comment.reviewArea}</span>}
-        {entry.comment.category && <span className="badge tag">{entry.comment.category}</span>}
-      </span>
-      <button
-        type="button"
-        className={`diff-inline-comment-favorite-btn ${isCommentFavorite?.(entry.commentKey) ? 'active' : ''}`}
-        onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleCommentFavorite?.(entry.commentKey); }}
-        title={isCommentFavorite?.(entry.commentKey) ? 'Remove from follow' : 'Mark to follow'}
-        aria-label={isCommentFavorite?.(entry.commentKey) ? 'Remove from follow' : 'Mark to follow'}
-      >
-        <i className={`${isCommentFavorite?.(entry.commentKey) ? 'fa-solid' : 'fa-regular'} fa-star`} aria-hidden="true" />
-      </button>
-      <button
-        type="button"
-        className="diff-inline-comment-read-btn"
-        onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleCommentRead?.(entry.commentKey); }}
-        title={isCommentRead?.(entry.commentKey) ? 'Mark as unread' : 'Mark as read'}
-        aria-label={isCommentRead?.(entry.commentKey) ? 'Mark as unread' : 'Mark as read'}
-      >
-        <i className={`fa-solid ${isCommentRead?.(entry.commentKey) ? 'fa-envelope-open' : 'fa-envelope'}`} aria-hidden="true" />
-      </button>
-      <i className="fa-solid fa-chevron-down diff-inline-comment-chevron" aria-hidden="true" />
-    </summary>
-    <div className="diff-inline-comment-body">
-      <div className="diff-inline-comment-msg-row">
-        <div className="diff-inline-comment-msg">{entry.comment.message ?? ''}</div>
-        <button
-          type="button"
-          className="diff-inline-copy-btn"
-          onClick={() => { void copyText(entry.comment.message ?? ''); }}
-          disabled={!entry.comment.message}
-          title="Copy message"
-          aria-label="Copy message"
-        >
-          <i className="fa-regular fa-copy" aria-hidden="true" />
-        </button>
-      </div>
-      {entry.comment.suggestion && (
-        <div className="diff-inline-comment-suggestion">
-          <div className="diff-inline-comment-suggestion-header">
-            <strong>Suggestion:</strong>
-            <button
-              type="button"
-              className="diff-inline-copy-btn"
-              onClick={() => { void copyText(entry.comment.suggestion ?? ''); }}
-              title="Copy suggestion"
-              aria-label="Copy suggestion"
-            >
-              <i className="fa-regular fa-copy" aria-hidden="true" />
-            </button>
-          </div>
-          <div>{entry.comment.suggestion}</div>
-        </div>
-      )}
-      {entry.comment.solution && (
-        <div className="diff-inline-comment-solution">
-          <div className="diff-inline-comment-suggestion-header">
-            <strong>Solution:</strong>
-            <button
-              type="button"
-              className="diff-inline-copy-btn"
-              onClick={() => { void copyText(entry.comment.solution ?? ''); }}
-              title="Copy solution"
-              aria-label="Copy solution"
-            >
-              <i className="fa-regular fa-copy" aria-hidden="true" />
-            </button>
-          </div>
-          <div>{entry.comment.solution}</div>
-        </div>
-      )}
-      {entry.comment.evidence && (
-        <div className="diff-inline-comment-evidence">
-          <strong>Evidence:</strong> {entry.comment.evidence}
-        </div>
-      )}
-      <div className="diff-inline-comment-actions">
-        <button
-          type="button"
-          className="diff-inline-comment-action-btn"
-          onClick={() => onOpenFollowUp?.(entry.runId)}
-          title="Open follow-up chat for this review run"
-        >
-          <i className="fa-solid fa-comments" aria-hidden="true" /> Follow-up
-        </button>
-        {onAskComment && (
+        <span className="diff-inline-comment-meta">
+          <span className="diff-inline-comment-author">Copilot · Run {entry.runNumber}</span>
+          {entry.isFallbackPlacement && (
+            <span className="badge tag diff-inline-fallback-badge" title="This comment could not be mapped to an exact line and was placed at the first displayed line.">
+              <i className="fa-solid fa-map-pin" aria-hidden="true" /> File-level
+            </span>
+          )}
+          {isCommentFavorite?.(entry.commentKey) && <span className="badge tag diff-inline-favorite-badge">To follow</span>}
+          <span className={`badge severity ${getSeverityClass(entry.comment.severity ?? '')}`}>
+            {entry.comment.severity ?? 'Info'}
+          </span>
+          {entry.comment.reviewArea && <span className="badge tag">{entry.comment.reviewArea}</span>}
+          {entry.comment.category && <span className="badge tag">{entry.comment.category}</span>}
+        </span>
+        {onSendToAdo && (
           <button
             type="button"
-            className="diff-inline-comment-action-btn"
-            onClick={() => {
-              const parts = [entry.comment.message ?? ''];
-              if (entry.comment.suggestion) parts.push(`Suggestion: ${entry.comment.suggestion}`);
-              if (entry.comment.solution) parts.push(`Solution: ${entry.comment.solution}`);
-              onAskComment(parts.join('\n'));
-            }}
-            title="Ask Copilot about this comment"
+            className={`diff-inline-comment-send-btn ${sentAt ? 'active' : ''}`}
+            onClick={(event) => { event.preventDefault(); event.stopPropagation(); onSendToAdo(entry); }}
+            title={sendTitle}
+            aria-label={sendTitle}
           >
-            <i className="fa-solid fa-comment-dots" aria-hidden="true" /> Ask me
+            <i className="fa-solid fa-paper-plane" aria-hidden="true" />
           </button>
         )}
         <button
           type="button"
-          className="diff-inline-comment-action-btn"
-          onClick={onGoToReview}
-          title="Go to Reviews tab"
+          className={`diff-inline-comment-favorite-btn ${isCommentFavorite?.(entry.commentKey) ? 'active' : ''}`}
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleCommentFavorite?.(entry.commentKey); }}
+          title={isCommentFavorite?.(entry.commentKey) ? 'Remove from follow' : 'Mark to follow'}
+          aria-label={isCommentFavorite?.(entry.commentKey) ? 'Remove from follow' : 'Mark to follow'}
         >
-          <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /> Reviews
+          <i className={`${isCommentFavorite?.(entry.commentKey) ? 'fa-solid' : 'fa-regular'} fa-star`} aria-hidden="true" />
         </button>
+        <button
+          type="button"
+          className="diff-inline-comment-read-btn"
+          onClick={(event) => { event.preventDefault(); event.stopPropagation(); onToggleCommentRead?.(entry.commentKey); }}
+          title={isCommentRead?.(entry.commentKey) ? 'Mark as unread' : 'Mark as read'}
+          aria-label={isCommentRead?.(entry.commentKey) ? 'Mark as unread' : 'Mark as read'}
+        >
+          <i className={`fa-solid ${isCommentRead?.(entry.commentKey) ? 'fa-envelope-open' : 'fa-envelope'}`} aria-hidden="true" />
+        </button>
+        <i className="fa-solid fa-chevron-down diff-inline-comment-chevron" aria-hidden="true" />
+      </summary>
+      <div className="diff-inline-comment-body">
+        <div className="diff-inline-comment-msg-row">
+          <CommentMarkdown content={entry.comment.message ?? ''} className="diff-inline-comment-msg" />
+          <button
+            type="button"
+            className="diff-inline-copy-btn"
+            onClick={() => { void copyText(entry.comment.message ?? ''); }}
+            disabled={!entry.comment.message}
+            title="Copy message"
+            aria-label="Copy message"
+          >
+            <i className="fa-regular fa-copy" aria-hidden="true" />
+          </button>
+        </div>
+        {entry.comment.suggestion && (
+          <div className="diff-inline-comment-suggestion">
+            <div className="diff-inline-comment-suggestion-header">
+              <strong>Suggestion:</strong>
+              <button
+                type="button"
+                className="diff-inline-copy-btn"
+                onClick={() => { void copyText(entry.comment.suggestion ?? ''); }}
+                title="Copy suggestion"
+                aria-label="Copy suggestion"
+              >
+                <i className="fa-regular fa-copy" aria-hidden="true" />
+              </button>
+            </div>
+            <CommentMarkdown content={entry.comment.suggestion} />
+          </div>
+        )}
+        {entry.comment.solution && (
+          <div className="diff-inline-comment-solution">
+            <div className="diff-inline-comment-suggestion-header">
+              <strong>Solution:</strong>
+              <button
+                type="button"
+                className="diff-inline-copy-btn"
+                onClick={() => { void copyText(entry.comment.solution ?? ''); }}
+                title="Copy solution"
+                aria-label="Copy solution"
+              >
+                <i className="fa-regular fa-copy" aria-hidden="true" />
+              </button>
+            </div>
+            <CommentMarkdown content={entry.comment.solution} />
+          </div>
+        )}
+        {entry.comment.evidence && (
+          <div className="diff-inline-comment-evidence">
+            <strong>Evidence:</strong>
+            <CommentMarkdown content={entry.comment.evidence} />
+          </div>
+        )}
+        <div className="diff-inline-comment-actions">
+          <button
+            type="button"
+            className="diff-inline-comment-action-btn"
+            onClick={() => onOpenFollowUp?.(entry.runId)}
+            title="Open follow-up chat for this review run"
+          >
+            <i className="fa-solid fa-comments" aria-hidden="true" /> Follow-up
+          </button>
+          {onAskComment && (
+            <button
+              type="button"
+              className="diff-inline-comment-action-btn"
+              onClick={() => {
+                const parts = [entry.comment.message ?? ''];
+                if (entry.comment.suggestion) parts.push(`Suggestion: ${entry.comment.suggestion}`);
+                if (entry.comment.solution) parts.push(`Solution: ${entry.comment.solution}`);
+                onAskComment(parts.join('\n'));
+              }}
+              title="Ask Copilot about this comment"
+            >
+              <i className="fa-solid fa-comment-dots" aria-hidden="true" /> Ask me
+            </button>
+          )}
+          <button
+            type="button"
+            className="diff-inline-comment-action-btn"
+            onClick={onGoToReview}
+            title="Go to Reviews tab"
+          >
+            <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" /> Reviews
+          </button>
+        </div>
       </div>
-    </div>
-  </details>
-);
+    </details>
+  );
+};

@@ -12,6 +12,8 @@ export const pullRequestsApi: Pick<RendererApi,
   'getFullFileDiff' |
   'getRepositories' |
   'getPullRequestThreads' |
+  'createPullRequestThread' |
+  'updatePullRequestThreadStatus' |
   'assignReviewerToPullRequest'
 > = {
   getPullRequests: preloadApi.getPullRequests,
@@ -25,5 +27,7 @@ export const pullRequestsApi: Pick<RendererApi,
   getFullFileDiff: preloadApi.getFullFileDiff,
   getRepositories: (sourceId?: string | null) => preloadApi.getRepositories(sourceId),
   getPullRequestThreads: preloadApi.getPullRequestThreads,
+  createPullRequestThread: preloadApi.createPullRequestThread,
+  updatePullRequestThreadStatus: preloadApi.updatePullRequestThreadStatus,
   assignReviewerToPullRequest: preloadApi.assignReviewerToPullRequest
 };
