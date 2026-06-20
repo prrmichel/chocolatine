@@ -30,13 +30,19 @@ The Changes tab is the most feature-dense part of the app. It combines a file tr
 - Copilot review comments are overlaid inline on matching changed lines.
 - **Fallback placement** — When a finding maps to a line not visible in the diff, a synthetic line is inserted.
 - **File-level comments** — Findings that don't map to a specific line appear at the top of the file.
+- **Markdown rendering** — Copilot comments and Azure DevOps user comments render markdown formatting such as lists, code fences, tables, links, and blockquotes.
 - **Filter by review run** — Show or hide comments from specific review runs.
 - **Hide all review runs** — Temporarily remove all AI comments from the view.
+- **Send to Azure DevOps** — Open a modal from a Copilot comment, edit the markdown draft, and publish it as a new Azure DevOps PR thread.
+- **Sent indicator** — After a successful publish, the **Send to ADO** icon stays highlighted, its tooltip shows the latest send timestamp, and that state is restored when you reopen the PR later.
 
 ### Azure DevOps Threads (Overlay)
 
 - User discussion threads from Azure DevOps are displayed inline alongside AI comments.
+- User comments render markdown formatting such as lists, code fences, links, tables, and blockquotes.
 - Toggle visibility of user comments independently from AI comments.
+- Resolve active Azure DevOps threads or reactivate resolved ones directly from the inline thread card.
+- The resolve action now maps to the native Azure DevOps **Fixed** status rather than **Closed**.
 
 ### Comment Management
 
@@ -56,9 +62,11 @@ The Changes tab is the most feature-dense part of the app. It combines a file tr
 1. Open a PR and navigate to the **Changes** tab.
 2. Browse the file tree on the left. Click a file to view its diff.
 3. If review runs have been completed, AI comments appear inline on the changed lines.
-4. Hover over a comment to see actions: mark read, mark favorite.
-5. Use the comment filter at the top to show only a specific review run.
-6. To investigate a finding further, select the relevant code and click the follow-up action to start a conversation.
+4. Hover over a Copilot comment to see actions such as mark read, mark favorite, and **Send to ADO**.
+5. Use **Send to ADO** on a Copilot comment to review and edit the markdown before publishing it to Azure DevOps.
+6. Use the thread actions on Azure DevOps comments to mark them read, resolve them as **Fixed**, or reactivate them later if needed.
+7. Use the comment filter at the top to show only a specific review run.
+8. To investigate a finding further, select the relevant code and click the follow-up action to start a conversation.
 
 ## Tips & Best Practices
 

@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import type { AppSettings, PullRequestStatus } from '@shared/types/models';
+import type { AppSettings, CreatePullRequestThreadInput, PullRequestStatus, UpdatePullRequestThreadStatusInput } from '@shared/types/models';
 import { IpcChannels } from '@shared/constants/ipcChannels';
 
 export const pullRequestsApi = {
@@ -25,6 +25,10 @@ export const pullRequestsApi = {
     ipcRenderer.invoke(IpcChannels.AZURE_GET_REPOSITORIES, sourceId),
   getPullRequestThreads: (repositoryId: string, id: number) =>
     ipcRenderer.invoke(IpcChannels.AZURE_GET_PULL_REQUEST_THREADS, repositoryId, id),
+  createPullRequestThread: (input: CreatePullRequestThreadInput) =>
+    ipcRenderer.invoke(IpcChannels.AZURE_CREATE_PULL_REQUEST_THREAD, input),
+  updatePullRequestThreadStatus: (input: UpdatePullRequestThreadStatusInput) =>
+    ipcRenderer.invoke(IpcChannels.AZURE_UPDATE_PULL_REQUEST_THREAD_STATUS, input),
   assignReviewerToPullRequest: (repositoryId: string, id: number) =>
     ipcRenderer.invoke(IpcChannels.AZURE_ASSIGN_REVIEWER_TO_PULL_REQUEST, repositoryId, id)
 };

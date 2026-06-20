@@ -1,27 +1,26 @@
-import { CopilotReviewComment } from '@shared/types/models';
 import { getSeverityClass } from '@renderer/utils/severity';
+import CommentMarkdown from '@renderer/features/shared/CommentMarkdown/CommentMarkdown';
+import { formatSentTimestamp } from '../../PullRequestDetail.helpers';
 import { LABELS, copilotRunLabel, lineLabel } from '../ChangesTab.messages';
+import type { ReviewCommentEntry } from '../ChangesTab.types';
 import styles from '../ChangesTab.module.css';
 
-interface FileLevelCommentsEntry {
-  comment: CopilotReviewComment;
-  runNumber: number;
-  runId: string;
-  commentKey: string;
-}
-
 interface FileLevelCommentsProps {
-  entries: FileLevelCommentsEntry[];
+  entries: ReviewCommentEntry[];
   isCommentRead: (commentKey: string) => boolean;
   onToggleCommentRead: (commentKey: string) => void;
   onAskComment?: (text: string) => void;
+  onSendToAdo?: (entry: ReviewCommentEntry) => void;
+  getCommentSentAt?: (commentKey: string) => string | null;
 }
 
 export default function FileLevelComments({
   entries,
   isCommentRead,
   onToggleCommentRead,
-  onAskComment
+  onAskComment,
+  onSendToAdo,
+  getCommentSentAt
 }: FileLevelCommentsProps) {
   if (entries.length === 0) return null;
 
@@ -33,6 +32,7 @@ export default function FileLevelComments({
       </h4>
       {entries.map((entry, ci) => {
         const read = isCommentRead(entry.commentKey);
+        const sentAt = getCommentSentAt?.(entry.commentKey) ?? null;
         return (
           <div key={`top-${ci}`} className={`diff-inline-comment ${read ? 'read' : ''}`}>
             <div className="diff-inline-comment-header" style={{ cursor: 'default' }}>
@@ -48,6 +48,17 @@ export default function FileLevelComments({
                 {entry.comment.reviewArea && <span className="badge tag">{entry.comment.reviewArea}</span>}
                 {entry.comment.category && <span className="badge tag">{entry.comment.category}</span>}
               </span>
+              {onSendToAdo && (
+                <button
+                  type="button"
+                  className={`diff-inline-comment-send-btn ${sentAt ? 'active' : ''}`}
+                  onClick={() => onSendToAdo(entry)}
+                  title={sentAt ? LABELS.sentToAdoAt(formatSentTimestamp(sentAt)) : LABELS.sendToAdoTitle}
+                  aria-label={sentAt ? LABELS.sentToAdoAt(formatSentTimestamp(sentAt)) : LABELS.sendToAdoTitle}
+                >
+                  <i className="fa-solid fa-paper-plane" aria-hidden="true" />
+                </button>
+              )}
               <button
                 type="button"
                 className="diff-inline-comment-read-btn"
@@ -72,12 +83,18 @@ export default function FileLevelComments({
             )}
             <div className="diff-inline-comment-body">
               <div className="diff-inline-comment-msg-row">
-                <div className="diff-inline-comment-msg">{entry.comment.message ?? ''}</div>
+                <CommentMarkdown content={entry.comment.message ?? ''} className="diff-inline-comment-msg" />
               </div>
               {entry.comment.suggestion && (
                 <div className="diff-inline-comment-suggestion">
                   <div className="diff-inline-comment-suggestion-header"><strong>{LABELS.suggestionLabel}</strong></div>
-                  <div>{entry.comment.suggestion}</div>
+                  <CommentMarkdown content={entry.comment.suggestion} />
+                </div>
+              )}
+              {entry.comment.solution && (
+                <div className="diff-inline-comment-solution">
+                  <div className="diff-inline-comment-suggestion-header"><strong>Solution:</strong></div>
+                  <CommentMarkdown content={entry.comment.solution} />
                 </div>
               )}
               {onAskComment && (

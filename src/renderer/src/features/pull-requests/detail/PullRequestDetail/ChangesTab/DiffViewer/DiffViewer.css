@@ -84,8 +84,9 @@
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Hide the entire details element when collapsed — the line icon is the toggle */
-details.diff-inline-comment:not([open]) {
+/* Hide collapsed inline cards only inside the diff overlay — the line icon is the toggle there. */
+.diff-inline-comments details.diff-inline-comment:not([open]),
+.diff-side-row-comments details.diff-inline-comment:not([open]) {
   display: none;
 }
 
@@ -322,6 +323,67 @@ details.diff-inline-comment:not([open]) {
   cursor: pointer;
 }
 
+.diff-inline-comment-send-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.diff-inline-comment-send-btn:hover {
+  color: var(--vscode-accent);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.diff-inline-comment-send-btn.active {
+  color: #4fc3f7;
+  border-color: rgba(79, 195, 247, 0.55);
+  background: rgba(79, 195, 247, 0.12);
+}
+
+.diff-inline-comment-send-btn.active:hover {
+  color: #8ad9ff;
+  border-color: #4fc3f7;
+  background: rgba(79, 195, 247, 0.18);
+}
+
+.diff-inline-comment-thread-status-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-muted);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.diff-inline-comment-thread-status-btn:hover:not(:disabled) {
+  color: #66BB6A;
+  border-color: #66BB6A;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.diff-inline-comment-thread-status-btn.active {
+  color: #66BB6A;
+  border-color: rgba(102, 187, 106, 0.45);
+  background: rgba(102, 187, 106, 0.12);
+}
+
+.diff-inline-comment-thread-status-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .diff-inline-comment-favorite-btn:hover {
   color: #ffd166;
   border-color: #ffd166;
@@ -486,6 +548,11 @@ details.diff-inline-comment:not([open]) {
   color: var(--vscode-muted);
   display: flex;
   align-items: center;
+  gap: 6px;
+}
+
+.ado-general-thread-list {
+  display: grid;
   gap: 6px;
 }
 

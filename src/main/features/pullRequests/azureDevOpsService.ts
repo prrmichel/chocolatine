@@ -1,4 +1,5 @@
-import { AzureDevOpsSettings, PullRequestDetails, PullRequestFileChange, PullRequestIteration, PullRequestStatus, PullRequestSummary, PullRequestThread, PullRequestWorkItem } from '@shared/types/models';
+import { AzureDevOpsSettings, CreatePullRequestThreadInput, CreatePullRequestThreadResult, PullRequestDetails, PullRequestFileChange, PullRequestIteration, PullRequestStatus, PullRequestSummary, PullRequestThread, PullRequestWorkItem, UpdatePullRequestThreadStatusInput, UpdatePullRequestThreadStatusResult } from '@shared/types/models';
+import { mapCreatePullRequestThreadError, mapUpdatePullRequestThreadStatusError } from './azureDevOpsErrors';
 
 export class AzureDevOpsService {
   constructor(
@@ -234,7 +235,7 @@ export class AzureDevOpsService {
     const options = this.ensureConfigured();
     const url = `${this.getBaseUrl(options)}/git/repositories/${repositoryId}/pullRequests/${pullRequestId}/threads?api-version=${options.apiVersion}`;
     const doc = await this.getJson(url, options);
-    const resolvedStatuses = new Set(['fixed', 'closed', 'byDesign', 'wontFix']);
+    const resolvedStatuses = new Set(['fixed', 'closed', 'bydesign', 'wontfix']);
     const mapped = (doc.value ?? []).map((thread: any) => {
       const status = String(thread.status ?? 'unknown').toLowerCase();
       const threadContext = thread.threadContext ?? {};
@@ -275,6 +276,105 @@ export class AzureDevOpsService {
       }))
     })));
     return hydrated;
+  }
+
+  async createPullRequestThread(input: CreatePullRequestThreadInput): Promise<CreatePullRequestThreadResult> {
+    const options = this.ensureConfigured();
+    const repositoryId = String(input.repositoryId ?? '').trim();
+    const content = String(input.content ?? '').trim();
+    const pullRequestId = Number(input.pullRequestId);
+
+    if (!repositoryId || !Number.isFinite(pullRequestId) || pullRequestId <= 0) {
+      throw new Error('The pull request could not be identified for comment publishing.');
+    }
+    if (!content) {
+      throw new Error('The comment is empty. Update the message before sending it to Azure DevOps.');
+    }
+
+    const url = `${this.getBaseUrl(options)}/git/repositories/${repositoryId}/pullRequests/${pullRequestId}/threads?api-version=${options.apiVersion}`;
+    const line = typeof input.line === 'number' && Number.isFinite(input.line) && input.line > 0
+      ? Math.floor(input.line)
+      : null;
+    const filePath = typeof input.filePath === 'string' && input.filePath.trim()
+      ? normalizeThreadFilePath(input.filePath)
+      : null;
+
+    const body: Record<string, unknown> = {
+      comments: [{
+        parentCommentId: 0,
+        content,
+        commentType: 1
+      }],
+      status: 1
+    };
+
+    if (filePath && line) {
+      body.threadContext = {
+        filePath,
+        leftFileStart: null,
+        leftFileEnd: null,
+        rightFileStart: { line, offset: 1 },
+        rightFileEnd: { line, offset: 1 }
+      };
+    }
+
+    try {
+      const doc = await this.postJson(url, options, body);
+      return {
+        threadId: Number(doc?.id ?? 0),
+        commentId: Number(doc?.comments?.[0]?.id ?? 0),
+        publishedDate: String(doc?.publishedDate ?? doc?.comments?.[0]?.publishedDate ?? new Date().toISOString()),
+        filePath: typeof doc?.threadContext?.filePath === 'string' ? doc.threadContext.filePath : filePath ?? undefined,
+        line: typeof doc?.threadContext?.rightFileStart?.line === 'number' ? doc.threadContext.rightFileStart.line : line ?? undefined
+      };
+    } catch (error) {
+      if (error instanceof AzureDevOpsHttpError) {
+        console.warn('[ADO] Failed to create pull request thread', {
+          status: error.status,
+          statusText: error.statusText,
+          body: error.body.slice(0, 500)
+        });
+        throw new Error(mapCreatePullRequestThreadError(error.status));
+      }
+      throw error;
+    }
+  }
+
+  async updatePullRequestThreadStatus(input: UpdatePullRequestThreadStatusInput): Promise<UpdatePullRequestThreadStatusResult> {
+    const options = this.ensureConfigured();
+    const repositoryId = String(input.repositoryId ?? '').trim();
+    const pullRequestId = Number(input.pullRequestId);
+    const threadId = Number(input.threadId);
+    const requestedStatus = input.status === 'active' ? 'active' : 'resolved';
+
+    if (!repositoryId || !Number.isFinite(pullRequestId) || pullRequestId <= 0 || !Number.isFinite(threadId) || threadId <= 0) {
+      throw new Error('The pull request comment could not be identified for status update.');
+    }
+
+    const url = `${this.getBaseUrl(options)}/git/repositories/${repositoryId}/pullRequests/${pullRequestId}/threads/${threadId}?api-version=${options.apiVersion}`;
+    const body = {
+      status: requestedStatus === 'active' ? 1 : 2
+    };
+
+    try {
+      const doc = await this.patchJson(url, options, body);
+      const status = String(doc?.status ?? (requestedStatus === 'active' ? 'active' : 'fixed')).toLowerCase();
+      return {
+        threadId,
+        status,
+        isResolved: new Set(['fixed', 'closed', 'bydesign', 'wontfix']).has(status)
+      };
+    } catch (error) {
+      if (error instanceof AzureDevOpsHttpError) {
+        console.warn('[ADO] Failed to update pull request thread status', {
+          status: error.status,
+          statusText: error.statusText,
+          body: error.body.slice(0, 500)
+        });
+        throw new Error(mapUpdatePullRequestThreadStatusError(error.status));
+      }
+      throw error;
+    }
   }
 
   async assignReviewerToPullRequest(repositoryId: string, pullRequestId: number): Promise<void> {
@@ -636,8 +736,7 @@ export class AzureDevOpsService {
   private async getJson(url: string, options: AzureDevOpsSettings) {
     const response = await fetch(url, { headers: this.buildHeaders(options) });
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || response.statusText);
+      throw await createAzureDevOpsHttpError(response);
     }
     return response.json();
   }
@@ -652,8 +751,7 @@ export class AzureDevOpsService {
       body: JSON.stringify(body)
     });
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || response.statusText);
+      throw await createAzureDevOpsHttpError(response);
     }
     return response.json();
   }
@@ -668,10 +766,25 @@ export class AzureDevOpsService {
       body: JSON.stringify(body)
     });
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || response.statusText);
+      throw await createAzureDevOpsHttpError(response);
     }
     await response.text();
+  }
+
+  private async patchJson(url: string, options: AzureDevOpsSettings, body: unknown) {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        ...this.buildHeaders(options),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok) {
+      throw await createAzureDevOpsHttpError(response);
+    }
+    const raw = await response.text();
+    return raw ? JSON.parse(raw) : {};
   }
 
   private async getWorkItemDetails(ids: number[], options: AzureDevOpsSettings) {
@@ -757,6 +870,27 @@ const decodeHtmlEntities = (value: string) => value
   .replace(/&#39;/g, "'")
   .replace(/&#x([0-9a-fA-F]+);/g, (_match, hex) => String.fromCharCode(parseInt(hex, 16)))
   .replace(/&#(\d+);/g, (_match, num) => String.fromCharCode(parseInt(num, 10)));
+
+class AzureDevOpsHttpError extends Error {
+  constructor(
+    readonly status: number,
+    readonly statusText: string,
+    readonly body: string
+  ) {
+    super(body || statusText);
+    this.name = 'AzureDevOpsHttpError';
+  }
+}
+
+const createAzureDevOpsHttpError = async (response: Response): Promise<AzureDevOpsHttpError> => {
+  const body = await response.text().catch(() => '');
+  return new AzureDevOpsHttpError(response.status, response.statusText, body);
+};
+
+const normalizeThreadFilePath = (value: string): string => {
+  const normalized = value.trim().replace(/\\/g, '/').replace(/^\/+/, '');
+  return normalized ? `/${normalized}` : '';
+};
 
 const resolveImageContentType = (url: URL, headers: Headers, contentType: string) => {
   if (contentType.startsWith('image/')) {

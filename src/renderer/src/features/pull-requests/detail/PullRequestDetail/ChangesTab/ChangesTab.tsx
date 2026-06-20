@@ -1,14 +1,16 @@
 import { useRef, useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import { getModelDisplayName } from '@shared/constants/modelOptions';
-import { CopilotReviewComment, CopilotReviewResult, PullRequestFileDiff, PullRequestSummary, PullRequestThread, ReviewJob } from '@shared/types/models';
+import { CopilotReviewResult, PullRequestFileDiff, PullRequestSummary, PullRequestThread, ReviewJob } from '@shared/types/models';
 import { copyToClipboard } from '@renderer/utils/clipboard';
-import { normalizePath, arePathsEquivalent, buildFileTree, filterTree } from '../PullRequestDetail.helpers';
+import { buildAdoCommentDraft, normalizePath, arePathsEquivalent, buildFileTree, filterTree } from '../PullRequestDetail.helpers';
 import { api } from '@renderer/services/api';
 import { useResizeDrag } from '@renderer/hooks/useResizeDrag';
 import FileTree from './FileTree/FileTree';
 import DiffViewer, { AdoThreadsSection } from './DiffViewer/DiffViewer';
 import FilterToolbar from './FilterToolbar/FilterToolbar';
 import FileLevelComments from './FileLevelComments/FileLevelComments';
+import AdoCommentComposerModal from './AdoCommentComposerModal';
+import type { ReviewCommentEntry } from './ChangesTab.types';
 import FollowUpTab from '../FollowUpTab/FollowUpTab';
 import SelectionAskButton from './SelectionAskButton/SelectionAskButton';
 import { LABELS } from './ChangesTab.messages';
@@ -22,7 +24,7 @@ interface ChangesTabProps {
   defaultDiffViewMode?: 'inline' | 'side';
   selectedDiffPath: string | null;
   diffsLoading: boolean;
-  allFileComments: Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>;
+  allFileComments: Map<number, ReviewCommentEntry[]>;
   onSelectDiff: (path: string) => void;
   onNavigateToReviews: () => void;
   isCommentRead: (commentKey: string) => boolean;
@@ -34,13 +36,19 @@ interface ChangesTabProps {
   onMarkCommentsUnread: (keys: string[]) => void;
   isThreadRead: (threadId: number) => boolean;
   onToggleThreadRead: (threadId: number) => void;
+  onToggleThreadResolved: (thread: PullRequestThread) => Promise<void>;
+  isThreadStatusUpdating: (threadId: number) => boolean;
   pullRequest: PullRequestSummary | null;
+  pullRequestRepositoryId: string | null;
   reviewJobs: ReviewJob[];
   modelOptions: { id: string; label: string; disabled?: boolean }[];
   followUpPanelOpen: boolean;
   followUpPanelHeight: number;
   onFollowUpPanelOpenChange: (open: boolean) => void;
   onFollowUpPanelHeightChange: (height: number) => void;
+  onRefreshThreads: () => Promise<void>;
+  getCommentSentAt: (commentKey: string) => string | null;
+  onMarkCommentSent: (commentKey: string, sentAt: string) => void | Promise<void>;
 }
 
 export default function ChangesTab({
@@ -62,13 +70,19 @@ export default function ChangesTab({
   onMarkCommentsUnread,
   isThreadRead,
   onToggleThreadRead,
+  onToggleThreadResolved,
+  isThreadStatusUpdating,
   pullRequest,
+  pullRequestRepositoryId,
   reviewJobs,
   modelOptions,
   followUpPanelOpen,
   followUpPanelHeight,
   onFollowUpPanelOpenChange,
-  onFollowUpPanelHeightChange
+  onFollowUpPanelHeightChange,
+  onRefreshThreads,
+  getCommentSentAt,
+  onMarkCommentSent
 }: ChangesTabProps) {
   const [changesListWidth, setChangesListWidth] = useState(260);
   const [isFileTreeCollapsed, setIsFileTreeCollapsed] = useState(false);
@@ -82,6 +96,10 @@ export default function ChangesTab({
   const [followUpPendingContextId, setFollowUpPendingContextId] = useState<string | null>(null);
   const [askPendingJobId, setAskPendingJobId] = useState<string | null>(null);
   const [askPendingMessage, setAskPendingMessage] = useState('');
+  const [adoComposerEntry, setAdoComposerEntry] = useState<ReviewCommentEntry | null>(null);
+  const [adoComposerDraft, setAdoComposerDraft] = useState('');
+  const [adoComposerError, setAdoComposerError] = useState<string | null>(null);
+  const [adoComposerSending, setAdoComposerSending] = useState(false);
   const [fullDiffTexts, setFullDiffTexts] = useState<Map<string, string>>(new Map());
   const [isLoadingFullDiff, setIsLoadingFullDiff] = useState(false);
   const deferredFileFilterText = useDeferredValue(fileFilterText);
@@ -200,12 +218,12 @@ export default function ChangesTab({
   }, [allFileComments, allRunsSelected, selectedRunIdSet, hideAllRuns]);
 
   const filteredLineComments = useMemo(() => {
-    if (hideAllRuns) return new Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>();
+    if (hideAllRuns) return new Map<number, ReviewCommentEntry[]>();
     let source = allFileComments;
 
     // Filter by selected runs
     if (!allRunsSelected) {
-      const map = new Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>();
+      const map = new Map<number, ReviewCommentEntry[]>();
       for (const [line, entries] of source.entries()) {
         const filtered = entries.filter((entry) => selectedRunIdSet.has(entry.runId));
         if (filtered.length > 0) {
@@ -217,7 +235,7 @@ export default function ChangesTab({
 
     // Filter by read/unread visibility
     if (!showReadComments || !showUnreadComments) {
-      const map = new Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>();
+      const map = new Map<number, ReviewCommentEntry[]>();
       for (const [line, entries] of source.entries()) {
         const filtered = entries.filter((entry) => {
           const read = isCommentRead(entry.commentKey);
@@ -233,7 +251,7 @@ export default function ChangesTab({
     }
 
     // Include all entries (fallback entries are now keyed by their actual lineNew in PullRequestDetail)
-    const lineMap = new Map<number, { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string; isFallbackPlacement?: boolean }[]>();
+    const lineMap = new Map<number, ReviewCommentEntry[]>();
     for (const [line, entries] of source.entries()) {
       if (entries.length > 0) lineMap.set(line, entries);
     }
@@ -243,7 +261,7 @@ export default function ChangesTab({
   /** Lines that have comments but are not currently in the diff (fallback placements with evidence). */
   const topLevelComments = useMemo(() => {
     if (hideAllRuns) return [];
-    const result: { comment: CopilotReviewComment; runNumber: number; runId: string; commentKey: string }[] = [];
+    const result: ReviewCommentEntry[] = [];
     for (const entries of allFileComments.values()) {
       for (const entry of entries) {
         if (!entry.isFallbackPlacement) continue;
@@ -433,6 +451,57 @@ export default function ChangesTab({
     onFollowUpPanelOpenChange(true);
   }, [reviewJobs, selectedDiff?.path, onFollowUpPanelOpenChange]);
 
+  const handleOpenAdoComposer = useCallback((entry: ReviewCommentEntry) => {
+    setAdoComposerEntry(entry);
+    setAdoComposerDraft(buildAdoCommentDraft(entry.comment, entry.runNumber, selectedDiff?.path));
+    setAdoComposerError(null);
+  }, [selectedDiff?.path]);
+
+  const handleCloseAdoComposer = useCallback(() => {
+    if (adoComposerSending) {
+      return;
+    }
+    setAdoComposerEntry(null);
+    setAdoComposerDraft('');
+    setAdoComposerError(null);
+  }, [adoComposerSending]);
+
+  const handleSendAdoComment = useCallback(async () => {
+    if (!adoComposerEntry || !pullRequest || !pullRequestRepositoryId) {
+      setAdoComposerError('The pull request details are still loading. Wait a moment and try again.');
+      return;
+    }
+
+    setAdoComposerSending(true);
+    setAdoComposerError(null);
+    try {
+      const result = await api.createPullRequestThread({
+        repositoryId: pullRequestRepositoryId,
+        pullRequestId: pullRequest.id,
+        content: adoComposerDraft,
+        filePath: adoComposerEntry.comment.file ?? selectedDiff?.path ?? null,
+        line: adoComposerEntry.comment.lineNew ?? null
+      });
+      await onMarkCommentSent(adoComposerEntry.commentKey, result.publishedDate);
+      setAdoComposerEntry(null);
+      setAdoComposerDraft('');
+      setAdoComposerError(null);
+      void onRefreshThreads();
+    } catch (error) {
+      setAdoComposerError(error instanceof Error ? error.message : 'Unable to send the comment to Azure DevOps.');
+    } finally {
+      setAdoComposerSending(false);
+    }
+  }, [
+    adoComposerDraft,
+    adoComposerEntry,
+    onMarkCommentSent,
+    onRefreshThreads,
+    pullRequest,
+    pullRequestRepositoryId,
+    selectedDiff?.path
+  ]);
+
   const startResizeChanges = useResizeDrag({
     direction: 'horizontal',
     startSize: changesListWidth,
@@ -593,13 +662,15 @@ export default function ChangesTab({
             </div>
             <div className={styles.diffViewBody} ref={diffViewBodyRef}>
               <SelectionAskButton containerRef={diffViewBodyRef} onAsk={handleAskMe} />
-              <AdoThreadsSection title={LABELS.prComments} threads={generalThreads} isThreadRead={isThreadRead} onToggleThreadRead={onToggleThreadRead} showFilePath onAskComment={handleAskComment} />
-              <AdoThreadsSection title={LABELS.fileComments} threads={fileLevelThreads} isThreadRead={isThreadRead} onToggleThreadRead={onToggleThreadRead} showFilePath onAskComment={handleAskComment} />
+              <AdoThreadsSection title={LABELS.prComments} threads={generalThreads} isThreadRead={isThreadRead} onToggleThreadRead={onToggleThreadRead} onToggleThreadResolved={onToggleThreadResolved} isThreadStatusUpdating={isThreadStatusUpdating} showFilePath onAskComment={handleAskComment} />
+              <AdoThreadsSection title={LABELS.fileComments} threads={fileLevelThreads} isThreadRead={isThreadRead} onToggleThreadRead={onToggleThreadRead} onToggleThreadResolved={onToggleThreadResolved} isThreadStatusUpdating={isThreadStatusUpdating} showFilePath onAskComment={handleAskComment} />
               <FileLevelComments
                 entries={topLevelComments}
                 isCommentRead={isCommentRead}
                 onToggleCommentRead={onToggleCommentRead}
                 onAskComment={handleAskComment}
+                onSendToAdo={pullRequest && pullRequestRepositoryId ? handleOpenAdoComposer : undefined}
+                getCommentSentAt={getCommentSentAt}
               />
               <DiffViewer
                 diffText={fullDiffTexts.get(selectedDiff?.path ?? '') ?? augmentedDiffText}
@@ -613,9 +684,13 @@ export default function ChangesTab({
                 onToggleCommentFavorite={onToggleCommentFavorite}
                 onOpenFollowUp={handleOpenFollowUp}
                 onAskComment={handleAskComment}
+                onSendToAdo={pullRequest && pullRequestRepositoryId ? handleOpenAdoComposer : undefined}
+                getCommentSentAt={getCommentSentAt}
                 lineThreads={allFileThreads}
                 isThreadRead={isThreadRead}
                 onToggleThreadRead={onToggleThreadRead}
+                onToggleThreadResolved={onToggleThreadResolved}
+                isThreadStatusUpdating={isThreadStatusUpdating}
               />
             </div>
           </div>
@@ -652,6 +727,15 @@ export default function ChangesTab({
               <i className="fa-solid fa-chevron-up" aria-hidden="true" />
             </div>
           )}
+          <AdoCommentComposerModal
+            entry={adoComposerEntry}
+            draft={adoComposerDraft}
+            sending={adoComposerSending}
+            error={adoComposerError}
+            onDraftChange={setAdoComposerDraft}
+            onCancel={handleCloseAdoComposer}
+            onSend={() => { void handleSendAdoComment(); }}
+          />
         </div>
       )}
     </div>

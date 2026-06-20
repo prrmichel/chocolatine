@@ -9,6 +9,10 @@ import {
   PromptLibrarySettings,
   PullRequestFileChange,
   PullRequestFileDiff,
+  CreatePullRequestThreadInput,
+  CreatePullRequestThreadResult,
+  UpdatePullRequestThreadStatusInput,
+  UpdatePullRequestThreadStatusResult,
   PullRequestStatus,
   PullRequestSummary,
   ReviewJob,
@@ -48,6 +52,8 @@ declare global {
       getFullFileDiff: (pullRequestId: number, filePath: string) => Promise<string>;
       getRepositories: (sourceId?: string | null) => Promise<Array<{ id: string; name: string; defaultBranch?: string }>>;
       getPullRequestThreads: (repositoryId: string, id: number) => Promise<any[]>;
+      createPullRequestThread: (input: CreatePullRequestThreadInput) => Promise<CreatePullRequestThreadResult>;
+      updatePullRequestThreadStatus: (input: UpdatePullRequestThreadStatusInput) => Promise<UpdatePullRequestThreadStatusResult>;
       assignReviewerToPullRequest: (repositoryId: string, id: number) => Promise<void>;
       getReviewJobs: () => Promise<any[]>;
       enqueueReview: (pullRequest: PullRequestSummary, prompt: string, modelName?: string | null, batchLabel?: string | null, batchPrompts?: string[], forceNewSession?: boolean, selectedSkillIds?: string[], reviewSessionOptions?: ReviewSessionOptions | null, reviewPromptContext?: ReviewPromptContext | null) => Promise<any>;
@@ -135,6 +141,8 @@ const createMissingApi = (): RendererApi => ({
   getFullFileDiff: fail,
   getRepositories: fail,
   getPullRequestThreads: fail,
+  createPullRequestThread: fail,
+  updatePullRequestThreadStatus: fail,
   assignReviewerToPullRequest: fail,
   getReviewJobs: fail,
   enqueueReview: fail,

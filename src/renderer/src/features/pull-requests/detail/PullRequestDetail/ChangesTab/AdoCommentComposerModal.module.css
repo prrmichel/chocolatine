@@ -1,0 +1,40 @@
+.adoComposerModal {
+  --modal-width: min(860px, 92vw);
+}
+
+.adoComposerContext {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+
+.adoComposerMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.adoComposerHint {
+  margin: 0;
+  color: var(--vscode-muted);
+  line-height: 1.5;
+}
+
+.adoComposerTextarea {
+  min-height: 460px;
+  resize: vertical;
+  font-family: "Cascadia Mono", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.adoComposerError {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 99, 99, 0.3);
+  background: rgba(255, 99, 99, 0.08);
+  color: #ffb3b3;
+  line-height: 1.5;
+}

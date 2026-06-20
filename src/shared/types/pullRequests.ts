@@ -93,3 +93,32 @@ export interface PullRequestThread {
   comments: PullRequestThreadComment[];
   isResolved: boolean;
 }
+
+export interface CreatePullRequestThreadInput {
+  repositoryId: string;
+  pullRequestId: number;
+  content: string;
+  filePath?: string | null;
+  line?: number | null;
+}
+
+export interface CreatePullRequestThreadResult {
+  threadId: number;
+  commentId: number;
+  publishedDate: string;
+  filePath?: string;
+  line?: number;
+}
+
+export interface UpdatePullRequestThreadStatusInput {
+  repositoryId: string;
+  pullRequestId: number;
+  threadId: number;
+  status: 'active' | 'resolved';
+}
+
+export interface UpdatePullRequestThreadStatusResult {
+  threadId: number;
+  status: string;
+  isResolved: boolean;
+}

@@ -91,6 +91,8 @@ export const registerIpc = (
     return azureDevOpsService.getRepositories(runtime.settings);
   });
   ipcMain.handle(IpcChannels.AZURE_GET_PULL_REQUEST_THREADS, async (_event, repositoryId, id) => azureDevOpsService.getPullRequestThreads(repositoryId, id));
+  ipcMain.handle(IpcChannels.AZURE_CREATE_PULL_REQUEST_THREAD, async (_event, input) => azureDevOpsService.createPullRequestThread(input));
+  ipcMain.handle(IpcChannels.AZURE_UPDATE_PULL_REQUEST_THREAD_STATUS, async (_event, input) => azureDevOpsService.updatePullRequestThreadStatus(input));
   ipcMain.handle(IpcChannels.AZURE_ASSIGN_REVIEWER_TO_PULL_REQUEST, async (_event, repositoryId, id) => azureDevOpsService.assignReviewerToPullRequest(repositoryId, id));
 
   ipcMain.handle(IpcChannels.REVIEW_QUEUE_GET_JOBS, async () => reviewQueueService.getJobs());

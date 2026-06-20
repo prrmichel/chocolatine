@@ -33,14 +33,26 @@ export const LABELS = {
     'These comments have no line information and cannot be placed in the diff',
   markAsUnread: 'Mark as unread',
   markAsRead: 'Mark as read',
+  resolveComment: 'Resolve comment',
+  reactivateComment: 'Reactivate comment',
   readBadge: 'Read',
   suggestionLabel: 'Suggestion:',
   referencedLineNotInDiff: ' · referenced line not in diff view',
   followUp: 'Follow-up',
   askMe: 'Ask me',
   askMeTitle: 'Ask Copilot about selected code',
+  sendToAdo: 'Send to ADO',
+  sendToAdoTitle: 'Send to ADO',
+  sendToAdoModalTitle: 'Send comment to Azure DevOps',
+  sendToAdoTextareaLabel: 'Comment markdown',
+  confirmSendToAdo: 'Send',
+  cancelSendToAdo: 'Cancel',
+  sendingToAdo: 'Sending…',
+  sentToAdo: 'Sent to ADO',
+  sentToAdoAt: (value: string) => `Sent to Azure DevOps on ${value}`,
 } as const;
 
 export const copilotRunLabel = (n: number): string => `Copilot · Run ${n}`;
 
 export const lineLabel = (n: number): string => `Line ${n}`;
+export const runLabel = (n: number): string => `Run ${n}`;
