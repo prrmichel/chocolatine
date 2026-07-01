@@ -544,6 +544,58 @@ export class SettingsStore {
     return results;
   }
 
+  /** Synchronously return cached BYOK models for the onListModels handler. */
+  listByokProviderModelsSync(): Array<{ id: string; name: string; multiplier: number }> {
+    const providers = this.database?.getByokProviders() ?? [];
+    if (providers.length === 0) return [];
+
+    const results: Array<{ id: string; name: string; multiplier: number }> = [];
+    for (const provider of providers) {
+      const cached = this.byokModelFetcher.getCachedModels(provider.id);
+      for (const model of cached) {
+        results.push({ id: model.id, name: model.name, multiplier: model.multiplier });
+      }
+    }
+    // If nothing cached yet, return fallback hardcoded models
+    if (results.length === 0) {
+      for (const provider of providers) {
+        results.push(
+          { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0 },
+          { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', multiplier: 0 }
+        );
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Resolve the BYOK provider config for a given model ID.
+   * Self-contained — does NOT rely on KNOWN_MODELS (renderer-only state).
+   */
+  resolveByokProvider(modelId: string): { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined {
+    if (!modelId || modelId === 'Auto') return undefined;
+
+    const FALLBACK_IDS = ['deepseek-chat', 'deepseek-reasoner'];
+    const providers = this.database?.getByokProviders() ?? [];
+
+    for (const provider of providers) {
+      const cached = this.byokModelFetcher.getCachedModels(provider.id);
+      const known = cached.length > 0 ? cached.map((m) => m.id) : FALLBACK_IDS;
+
+      if (known.includes(modelId)) {
+        const apiKey = this.getByokApiKey(provider.id);
+        if (!apiKey) continue;
+        return {
+          providerId: provider.id,
+          type: provider.type,
+          baseUrl: provider.baseUrl,
+          apiKey
+        };
+      }
+    }
+    return undefined;
+  }
+
   saveSettings(settings: AppSettings): SettingsSaveResult {
     const normalized: AppSettings = {
       ...settings,

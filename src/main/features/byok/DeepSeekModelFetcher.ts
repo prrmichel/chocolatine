@@ -51,6 +51,15 @@ export class DeepSeekModelFetcher {
     this.cache.clear();
   }
 
+  /** Synchronously return cached models for a provider (no fetch). Returns empty if not cached. */
+  getCachedModels(providerId: string): KnownModelDefinition[] {
+    const cached = this.cache.get(providerId);
+    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+      return cached.models;
+    }
+    return [];
+  }
+
   private async fetchFromApi(baseUrl: string, apiKey: string, providerId: string, providerLabel?: string): Promise<KnownModelDefinition[]> {
     const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
     const url = `${normalizedBaseUrl}/v1/models`;

@@ -8,9 +8,10 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 /**
- * Isolated root directory for Copilot runtime data.
- * We point the SDK baseDirectory to `<userData>/copilot-home/.copilot`
- * so session state is separated from the user's global `~/.copilot`.
+ * Isolated working directory for Copilot runtime sessions.
+ * Session state is separated by using a Chocolatine-specific working
+ * directory while authentication is handled via the global ~/.copilot
+ * (so the user's existing Copilot CLI login is reused).
  *
  * Resolved path (Windows): `%APPDATA%/chocolatine/copilot-home`
  */
@@ -49,14 +50,11 @@ function resolveNativeCopilotCliPath(): string {
  */
 export function buildCopilotClientOptions(): CopilotClientOptions {
   const copilotHome = getCopilotHome();
-  const copilotBaseDirectory = join(copilotHome, '.copilot');
-  mkdirSync(copilotBaseDirectory, { recursive: true });
   const cliPath = resolveNativeCopilotCliPath();
 
   return {
     connection: RuntimeConnection.forStdio({ path: cliPath }),
     workingDirectory: copilotHome,
-    baseDirectory: copilotBaseDirectory,
     logLevel: 'debug',
     env: process.env
   };

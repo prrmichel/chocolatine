@@ -35,6 +35,8 @@ export class CopilotSessionManager {
   private readonly sessionSkillKeys = new Map<string, string>();
   /** Tracks the working directory bound to each in-memory session. */
   private readonly sessionWorkspaceKeys = new Map<string, string>();
+  /** Resolves BYOK provider config for a given model ID. */
+  private byokProviderResolver?: (modelName: string) => { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined;
 
   /**
    * Per-key lock to prevent concurrent getOrCreateSession calls from
@@ -57,6 +59,11 @@ export class CopilotSessionManager {
     return () => {
       this.logListeners = this.logListeners.filter((l) => l !== listener);
     };
+  }
+
+  /** Set the BYOK provider resolver — called to resolve provider config for BYOK model IDs. */
+  setByokProviderResolver(resolver: (modelName: string) => { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined): void {
+    this.byokProviderResolver = resolver;
   }
 
   /** Intercept process.stderr to capture SDK log lines during execution. */
@@ -800,7 +807,9 @@ export class CopilotSessionManager {
    * Model changes reuse the same session and switch models in-place.
    */
   static reviewKey(prRepo: string, prId: number, modelName?: string | null): string {
-    void modelName;
+    if (modelName) {
+      return `review:${prRepo}:${prId}:${modelName}`;
+    }
     return `review:${prRepo}:${prId}`;
   }
 
@@ -1119,6 +1128,15 @@ export class CopilotSessionManager {
     const requestedModel = normalizeSelectableModelId(modelName);
     const parsed = this.parseReviewKey(key);
     if (parsed) {
+      // Include provider ID in the key for BYOK models to isolate sessions per provider
+      let providerId: string | undefined;
+      if (this.byokProviderResolver && requestedModel && requestedModel !== AUTO_MODEL_ID) {
+        const provider = this.byokProviderResolver(requestedModel);
+        providerId = provider?.providerId;
+      }
+      if (providerId) {
+        return CopilotSessionManager.reviewKey(parsed.prRepo, parsed.prId, `${providerId}:${requestedModel}`);
+      }
       return CopilotSessionManager.reviewKey(parsed.prRepo, parsed.prId, requestedModel);
     }
 
@@ -1205,6 +1223,26 @@ export class CopilotSessionManager {
     if (reviewSessionOptions?.workingDirectory?.trim()) {
       options.workingDirectory = reviewSessionOptions.workingDirectory.trim();
     }
+
+    // Inject BYOK provider as NamedProviderConfig + ProviderModelConfig
+    if (this.byokProviderResolver && modelName && modelName !== AUTO_MODEL_ID) {
+      const provider = this.byokProviderResolver(modelName);
+      if (provider) {
+        const qualifiedModelId = `${provider.providerId}/${modelName}`;
+        options.model = qualifiedModelId;
+        options.providers = [{
+          name: provider.providerId,
+          type: provider.type,
+          baseUrl: provider.baseUrl,
+          apiKey: provider.apiKey
+        }];
+        options.models = [{
+          id: modelName,
+          provider: provider.providerId
+        }];
+      }
+    }
+
     return options;
   }
 
