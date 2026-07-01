@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { mock } from 'node:test';
+import test from 'node:test';
 
 // We can't easily test the full DeepSeekModelFetcher because it uses `fetch`.
 // Instead we test the modelOptions merge and the BYOK model integration.

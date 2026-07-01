@@ -91,9 +91,8 @@ export default function ByokTab({
     }
   };
 
-  const testConnection = async (id: string, baseUrl: string) => {
+  const testConnection = async (id: string) => {
     const key = draftApiKey.trim();
-    const existing = providers.find((p) => p.id === id);
 
     setTestState((prev) => ({ ...prev, [id]: 'testing' }));
     setTestMessage((prev) => ({ ...prev, [id]: '' }));
@@ -179,7 +178,7 @@ export default function ByokTab({
           <button className="btn btn-sm" onClick={cancelEdit}>{BYOK_LABELS.cancel}</button>
           <button
             className="btn btn-sm"
-            onClick={() => testConnection(id, draftBaseUrl)}
+            onClick={() => testConnection(id)}
             disabled={!canTest || state === 'testing'}
           >
             {state === 'testing' ? <><i className="fa-solid fa-spinner fa-spin" /></> : <><i className="fa-solid fa-plug" /></>}

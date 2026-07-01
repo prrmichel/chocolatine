@@ -1,7 +1,7 @@
 ﻿import { approveAll, CopilotClient } from '@github/copilot-sdk';
 import { CopilotSessionManager } from '@main/core/copilot/copilotSessionManager';
 import { buildCopilotClientOptions } from '@main/utils/copilotClientOptions';
-import { AUTO_MODEL_ID, toSdkModel } from '@shared/constants/modelOptions';
+import { toSdkModel } from '@shared/constants/modelOptions';
 import { COPILOT_TIMEOUT_MS } from '@shared/constants/timeouts';
 import type { ReviewSessionOptions } from '@shared/types/models';
 

@@ -141,15 +141,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
 
     if (!sdkModels || sdkModels.length === 0) {
-      console.warn('[models] SDK model catalog unavailable after retries');
-      resetKnownModels();
-      set({
-        modelCatalog: [],
-        modelCatalogStatus: 'failed',
-        modelsVersion: get().modelsVersion + 1,
-        modelFallbackNotice: 'Unable to load Copilot model catalog from SDK. Model selection is unavailable and review launch is blocked until models can be loaded.'
-      });
-      return;
+      console.warn('[models] Copilot SDK model catalog unavailable — will attempt BYOK-only mode');
+      sdkModels = [];
     }
 
     // Build KnownModelDefinition[] directly from SDK data
@@ -161,14 +154,27 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }));
 
     // Fetch BYOK provider models and merge them into the catalog
+    let hasByokModels = false;
     try {
       const byokModels = await api.listByokProviderModels();
       if (byokModels.length > 0) {
-        // BYOK models: multiplier already set by fetcher (0), providerId already stamped
         merged.push(...byokModels);
+        hasByokModels = true;
       }
     } catch (err) {
       console.warn('[models] Failed to fetch BYOK provider models:', err);
+    }
+
+    // If neither Copilot nor BYOK models are available, fail
+    if (merged.length === 0) {
+      resetKnownModels();
+      set({
+        modelCatalog: [],
+        modelCatalogStatus: 'failed',
+        modelsVersion: get().modelsVersion + 1,
+        modelFallbackNotice: 'Unable to load any model catalog. Model selection is unavailable and review launch is blocked.'
+      });
+      return;
     }
 
     updateKnownModels(merged);
@@ -194,13 +200,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       modelCatalogStatus: 'ready'
     });
 
-    const defaultModelReconciliation = reconcileSelectableModelId(rawDefault);
-    if (defaultModelReconciliation.didFallbackToAuto && defaultModelReconciliation.requestedId) {
+    // Show a notice if only BYOK models are available (Copilot SDK failed)
+    if (sdkModels.length === 0 && hasByokModels) {
       set({
-        modelFallbackNotice: `Saved model "${defaultModelReconciliation.requestedId}" is no longer available in the current Copilot model catalog. Switched to ${AUTO_MODEL_ID}.`
+        modelFallbackNotice: 'Copilot model catalog is unavailable. Only BYOK provider models are available.'
       });
     } else {
-      set({ modelFallbackNotice: null });
+      const defaultModelReconciliation = reconcileSelectableModelId(rawDefault);
+      if (defaultModelReconciliation.didFallbackToAuto && defaultModelReconciliation.requestedId) {
+        set({
+          modelFallbackNotice: `Saved model "${defaultModelReconciliation.requestedId}" is no longer available in the current Copilot model catalog. Switched to ${AUTO_MODEL_ID}.`
+        });
+      } else {
+        set({ modelFallbackNotice: null });
+      }
     }
   }
 }));

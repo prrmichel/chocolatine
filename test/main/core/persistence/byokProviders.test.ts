@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
-import test, { mock } from 'node:test';
+import test from 'node:test';
 
 // ── Minimal mock for DatabaseService ──────────────────────────────────
-
-interface MockDb {
-  preferences: Record<string, string>;
-}
 
 function createMockDatabaseService(initialPrefs: Record<string, string> = {}) {
   const prefs: Record<string, string> = { ...initialPrefs };

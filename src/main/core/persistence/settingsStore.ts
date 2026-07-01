@@ -429,6 +429,8 @@ export class SettingsStore {
     // Store API key (encrypt if new key provided, keep existing if blank)
     if (apiKey.trim()) {
       this.byokApiKeys[provider.id] = protectSecret(apiKey.trim());
+      // Clear cached models so the next fetch uses the new key
+      this.byokModelFetcher.clearCache(provider.id);
     } else if (!isNew) {
       // Keep existing key — no change
     }
@@ -558,7 +560,8 @@ export class SettingsStore {
     }
     // If nothing cached yet, return fallback hardcoded models
     if (results.length === 0) {
-      for (const provider of providers) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for (const _ of providers) {
         results.push(
           { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0 },
           { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', multiplier: 0 }
