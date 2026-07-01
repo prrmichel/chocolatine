@@ -263,4 +263,7 @@ export const registerIpc = (
   ipcMain.handle(IpcChannels.BYOK_TEST_CONNECTION, async (_event, providerId: string, apiKey: string, baseUrl: string) =>
     settingsStore.testByokConnection(providerId, apiKey, baseUrl)
   );
+  ipcMain.handle(IpcChannels.BYOK_LIST_PROVIDER_MODELS, async () =>
+    settingsStore.listByokProviderModels()
+  );
 };

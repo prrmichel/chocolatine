@@ -8,6 +8,10 @@ export interface KnownModelDefinition {
   name: string;
   multiplier: number;
   aliases: string[];
+  /** Non-null for BYOK models — identifies the provider (e.g. 'byok-123'). */
+  providerId?: string | null;
+  /** Human-readable BYOK provider label shown in the model selector (e.g. 'Mon DeepSeek'). */
+  providerLabel?: string | null;
 }
 
 export interface ModelOption {
@@ -15,6 +19,8 @@ export interface ModelOption {
   name: string;
   multiplier: number | null;
   aliases?: string[];
+  providerId?: string | null;
+  providerLabel?: string | null;
 }
 
 export interface ModelSelectOption {
@@ -196,7 +202,10 @@ export const formatModelLabel = (id: string, multiplier: number | null, nameWidt
 };
 
 export const buildModelOptions = (): ModelSelectOption[] => {
-  return modelOptions.map((model) => ({ id: model.id, label: model.name }));
+  return modelOptions.map((model) => ({
+    id: model.id,
+    label: model.providerLabel ? `${model.name} (${model.providerLabel})` : model.name
+  }));
 };
 
 export const reconcileSelectableModelId = (

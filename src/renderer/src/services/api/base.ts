@@ -28,6 +28,7 @@ import {
   SkillScope,
   SkillSyncResult
 } from '@shared/types/models';
+import type { KnownModelDefinition } from '@shared/constants/modelOptions';
 
 declare global {
   interface Window {
@@ -48,6 +49,7 @@ declare global {
       saveByokProvider: (provider: ByokProviderConfig, apiKey: string) => Promise<SettingsSaveResult>;
       deleteByokProvider: (providerId: string) => Promise<SettingsSaveResult>;
       testByokConnection: (providerId: string, apiKey: string, baseUrl: string) => Promise<{ ok: boolean; message: string; models?: string[] }>;
+      listByokProviderModels: () => Promise<KnownModelDefinition[]>;
       getPullRequestDetails: (id: number) => Promise<any>;
       getPullRequestWorkItems: (repositoryId: string, id: number) => Promise<any[]>;
       getPullRequestDiffs: (id: number) => Promise<any[]>;
@@ -140,6 +142,7 @@ const createMissingApi = (): RendererApi => ({
   saveByokProvider: fail,
   deleteByokProvider: fail,
   testByokConnection: fail,
+  listByokProviderModels: fail,
   getPullRequestDetails: fail,
   getPullRequestWorkItems: fail,
   getPullRequestDiffs: fail,

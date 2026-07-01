@@ -9,7 +9,8 @@ export const settingsApi: Pick<RendererApi,
   'testStoredOrgConnection' |
   'saveByokProvider' |
   'deleteByokProvider' |
-  'testByokConnection'
+  'testByokConnection' |
+  'listByokProviderModels'
 > = {
   getSettings: preloadApi.getSettings,
   saveSettings: preloadApi.saveSettings,
@@ -19,5 +20,6 @@ export const settingsApi: Pick<RendererApi,
   testStoredOrgConnection: preloadApi.testStoredOrgConnection,
   saveByokProvider: preloadApi.saveByokProvider,
   deleteByokProvider: preloadApi.deleteByokProvider,
-  testByokConnection: preloadApi.testByokConnection
+  testByokConnection: preloadApi.testByokConnection,
+  listByokProviderModels: preloadApi.listByokProviderModels
 };

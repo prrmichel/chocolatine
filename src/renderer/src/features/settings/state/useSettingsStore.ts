@@ -160,6 +160,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       aliases: [m.name || m.id]
     }));
 
+    // Fetch BYOK provider models and merge them into the catalog
+    try {
+      const byokModels = await api.listByokProviderModels();
+      if (byokModels.length > 0) {
+        // BYOK models: multiplier already set by fetcher (0), providerId already stamped
+        merged.push(...byokModels);
+      }
+    } catch (err) {
+      console.warn('[models] Failed to fetch BYOK provider models:', err);
+    }
+
     updateKnownModels(merged);
     // Re-validate stored model names against the updated list
     const { modelName, workItemsSummaryModelName, settings: currentSettings } = get();

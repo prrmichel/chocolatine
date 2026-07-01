@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import type { AppSettings, ByokProviderConfig, SettingsSaveResult } from '@shared/types/models';
+import type { KnownModelDefinition } from '@shared/constants/modelOptions';
 import { IpcChannels } from '@shared/constants/ipcChannels';
 
 export const settingsApi = {
@@ -19,5 +20,7 @@ export const settingsApi = {
   deleteByokProvider: (providerId: string): Promise<SettingsSaveResult> =>
     ipcRenderer.invoke(IpcChannels.BYOK_DELETE_PROVIDER, providerId),
   testByokConnection: (providerId: string, apiKey: string, baseUrl: string): Promise<{ ok: boolean; message: string; models?: string[] }> =>
-    ipcRenderer.invoke(IpcChannels.BYOK_TEST_CONNECTION, providerId, apiKey, baseUrl)
+    ipcRenderer.invoke(IpcChannels.BYOK_TEST_CONNECTION, providerId, apiKey, baseUrl),
+  listByokProviderModels: (): Promise<KnownModelDefinition[]> =>
+    ipcRenderer.invoke(IpcChannels.BYOK_LIST_PROVIDER_MODELS)
 };

@@ -11,6 +11,8 @@ import {
   PromptCategory,
   SettingsSaveResult
 } from '@shared/types/models';
+import type { KnownModelDefinition } from '@shared/constants/modelOptions';
+import { DeepSeekModelFetcher } from '@main/features/byok/DeepSeekModelFetcher';
 import { getFallbackFreeModelId, normalizeDefaultModelId } from '@shared/constants/modelOptions';
 import { DatabaseService } from '@main/core/persistence/databaseService';
 import { applyAdoSettingsPolicy } from '@main/core/persistence/adoSettingsPolicy';
@@ -172,6 +174,7 @@ export class SettingsStore {
   private databaseFolderPath: string | null;
   /** BYOK API keys by provider ID (encrypted on disk, decrypted in memory). */
   private byokApiKeys: Record<string, string>;
+  private byokModelFetcher = new DeepSeekModelFetcher();
   private database: DatabaseService | null = null;
 
   constructor() {
@@ -520,6 +523,25 @@ export class SettingsStore {
       const detail = err instanceof Error ? err.message : String(err);
       return { ok: false, message: `Unable to test the connection: ${detail}` };
     }
+  }
+
+  /** Fetch models from all configured BYOK providers. */
+  async listByokProviderModels(): Promise<KnownModelDefinition[]> {
+    const providers = this.database?.getByokProviders() ?? [];
+    if (providers.length === 0) return [];
+
+    const results: KnownModelDefinition[] = [];
+    for (const provider of providers) {
+      const apiKey = this.getByokApiKey(provider.id);
+      if (!apiKey) continue;
+      try {
+        const models = await this.byokModelFetcher.fetchModels(provider.id, provider.baseUrl, apiKey, provider.label);
+        results.push(...models);
+      } catch (err) {
+        console.warn(`[Settings] Failed to fetch BYOK models for provider "${provider.id}":`, err);
+      }
+    }
+    return results;
   }
 
   saveSettings(settings: AppSettings): SettingsSaveResult {
