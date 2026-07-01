@@ -12,6 +12,7 @@ import { ReviewWorktreeService } from '@main/features/reviewWorktree/reviewWorkt
 import { SettingsStore } from '@main/core/persistence/settingsStore';
 import { SkillsService } from '@main/features/skills/skillsService';
 import { IpcChannels } from '@shared/constants/ipcChannels';
+import type { ByokProviderConfig } from '@shared/types/models';
 
 function getDatabaseTargetFolder(value: unknown): string | null {
   if (value == null) {
@@ -250,5 +251,16 @@ export const registerIpc = (
       failed: [],
       summary: { totalSkills: 0, mismatchCount: 0, lastValidatedAt: null, mismatches: [] }
     }
+  );
+
+  // BYOK providers
+  ipcMain.handle(IpcChannels.BYOK_SAVE_PROVIDER, async (_event, provider: ByokProviderConfig, apiKey: string) =>
+    settingsStore.saveByokProvider(provider, apiKey)
+  );
+  ipcMain.handle(IpcChannels.BYOK_DELETE_PROVIDER, async (_event, providerId: string) =>
+    settingsStore.deleteByokProvider(providerId)
+  );
+  ipcMain.handle(IpcChannels.BYOK_TEST_CONNECTION, async (_event, providerId: string, apiKey: string, baseUrl: string) =>
+    settingsStore.testByokConnection(providerId, apiKey, baseUrl)
   );
 };

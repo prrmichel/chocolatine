@@ -52,4 +52,13 @@ export function registerSettingsIpc({ settingsStore, databaseService }: MainIpcS
     settingsStore.setActivePrSource(id);
     return settingsStore.getRendererSettings();
   });
+  ipcMain.handle(IpcChannels.BYOK_SAVE_PROVIDER, async (_event, provider: ByokProviderConfig, apiKey: string) =>
+    settingsStore.saveByokProvider(provider, apiKey)
+  );
+  ipcMain.handle(IpcChannels.BYOK_DELETE_PROVIDER, async (_event, providerId: string) =>
+    settingsStore.deleteByokProvider(providerId)
+  );
+  ipcMain.handle(IpcChannels.BYOK_TEST_CONNECTION, async (_event, providerId: string, apiKey: string) =>
+    settingsStore.testByokConnection(providerId, apiKey)
+  );
 }

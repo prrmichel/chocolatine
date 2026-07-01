@@ -95,7 +95,11 @@ export const IpcChannels = {
   SKILLS_OPEN_FOLDER: 'skills:openFolder',
   SKILLS_GET_INTEGRITY_SUMMARY: 'skills:getIntegritySummary',
   SKILLS_VALIDATE_ALL: 'skills:validateAll',
-  SKILLS_SAVE_ALL_TO_DISK: 'skills:saveAllToDisk'
+  SKILLS_SAVE_ALL_TO_DISK: 'skills:saveAllToDisk',
+
+  BYOK_SAVE_PROVIDER: 'byok:saveProvider',
+  BYOK_DELETE_PROVIDER: 'byok:deleteProvider',
+  BYOK_TEST_CONNECTION: 'byok:testConnection'
 } as const;
 
 export type IpcChannel = (typeof IpcChannels)[keyof typeof IpcChannels];

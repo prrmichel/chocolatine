@@ -1,5 +1,5 @@
 import { ipcRenderer } from 'electron';
-import type { AppSettings, SettingsSaveResult } from '@shared/types/models';
+import type { AppSettings, ByokProviderConfig, SettingsSaveResult } from '@shared/types/models';
 import { IpcChannels } from '@shared/constants/ipcChannels';
 
 export const settingsApi = {
@@ -13,5 +13,11 @@ export const settingsApi = {
   testOrgConnection: (orgName: string, pat: string): Promise<{ ok: boolean; message: string }> =>
     ipcRenderer.invoke(IpcChannels.AZURE_TEST_ORG_CONNECTION, orgName, pat),
   testStoredOrgConnection: (orgId: string, orgName?: string): Promise<{ ok: boolean; message: string }> =>
-    ipcRenderer.invoke(IpcChannels.AZURE_TEST_STORED_ORG_CONNECTION, orgId, orgName)
+    ipcRenderer.invoke(IpcChannels.AZURE_TEST_STORED_ORG_CONNECTION, orgId, orgName),
+  saveByokProvider: (provider: ByokProviderConfig, apiKey: string): Promise<SettingsSaveResult> =>
+    ipcRenderer.invoke(IpcChannels.BYOK_SAVE_PROVIDER, provider, apiKey),
+  deleteByokProvider: (providerId: string): Promise<SettingsSaveResult> =>
+    ipcRenderer.invoke(IpcChannels.BYOK_DELETE_PROVIDER, providerId),
+  testByokConnection: (providerId: string, apiKey: string, baseUrl: string): Promise<{ ok: boolean; message: string; models?: string[] }> =>
+    ipcRenderer.invoke(IpcChannels.BYOK_TEST_CONNECTION, providerId, apiKey, baseUrl)
 };
