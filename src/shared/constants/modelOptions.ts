@@ -180,6 +180,22 @@ export const getModelDisplayName = (value: string | null | undefined): string =>
   return trimmed;
 };
 
+/**
+ * Returns true when the given model ID resolves to a BYOK model
+ * (a model with a non-null {@link KnownModelDefinition.providerId}).
+ */
+export const isByokModel = (modelId: string): boolean => {
+  if (!modelId || modelId === AUTO_MODEL_ID) {
+    return false;
+  }
+  const normalized = normalizeModelId(modelId, { allowAuto: false, fallback: 'none' });
+  if (!normalized) {
+    return false;
+  }
+  const model = knownModelById.get(normalized);
+  return model?.providerId != null;
+};
+
 export const toSdkModel = (value: string | null | undefined): string | undefined => {
   const normalized = normalizeSelectableModelId(value);
   return normalized === AUTO_MODEL_ID ? undefined : normalized;

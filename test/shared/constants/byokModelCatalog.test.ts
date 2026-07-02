@@ -170,3 +170,61 @@ test('all BYOK models (no Copilot) works correctly', () => {
   assert.equal(merged[0].id, 'deepseek-chat');
   assert.equal(merged[0].providerId, 'byok-1');
 });
+
+// ── isByokModel helpers & tests ─────────────────────────────────────
+
+/** Inlined version of isByokModel for pure unit testing without module state. */
+function isByokModel(
+  modelId: string,
+  knownModelById: Map<string, KnownModelDefinition>
+): boolean {
+  if (!modelId || modelId === AUTO_MODEL_ID) {
+    return false;
+  }
+  const model = knownModelById.get(modelId);
+  return model?.providerId != null;
+}
+
+function buildKnownModelById(models: KnownModelDefinition[]): Map<string, KnownModelDefinition> {
+  return new Map(models.map((m) => [m.id, m]));
+}
+
+test('isByokModel returns true for a model with providerId', () => {
+  const byokModels = buildKnownModelById([
+    { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0, aliases: [], providerId: 'byok-1' }
+  ]);
+  assert.equal(isByokModel('deepseek-chat', byokModels), true);
+});
+
+test('isByokModel returns false for a Copilot model without providerId', () => {
+  const models = buildKnownModelById([
+    { id: 'gpt-4', name: 'GPT-4', multiplier: 1, aliases: [] }
+  ]);
+  assert.equal(isByokModel('gpt-4', models), false);
+});
+
+test('isByokModel returns false for Auto', () => {
+  const models = buildKnownModelById([
+    { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0, aliases: [], providerId: 'byok-1' }
+  ]);
+  assert.equal(isByokModel('Auto', models), false);
+});
+
+test('isByokModel returns false for empty string', () => {
+  const models = buildKnownModelById([]);
+  assert.equal(isByokModel('', models), false);
+});
+
+test('isByokModel returns false for unknown model ID', () => {
+  const models = buildKnownModelById([
+    { id: 'gpt-4', name: 'GPT-4', multiplier: 1, aliases: [] }
+  ]);
+  assert.equal(isByokModel('nonexistent-model', models), false);
+});
+
+test('isByokModel returns false when providerId is null (not undefined)', () => {
+  const models = buildKnownModelById([
+    { id: 'claude-3', name: 'Claude 3', multiplier: 1, aliases: [], providerId: null }
+  ]);
+  assert.equal(isByokModel('claude-3', models), false);
+});

@@ -932,6 +932,18 @@ export class CopilotSessionManager {
         await this.deleteSession(normalizedKey);
         return this.getOrCreateSession(normalizedKey, requestedModel, skillDirectories, disabledSkills, reviewSessionOptions);
       }
+
+      // When the BYOK provider changes (BYOK→non-BYOK or non-BYOK→BYOK),
+      // the session must be recreated so buildSessionOptions injects the correct
+      // provider configuration. ensureSessionModel only calls setModel() which
+      // cannot change providers — they are immutable after session creation.
+      const currentIsByok = this.byokProviderResolver?.(currentModel) != null;
+      const requestedIsByok = this.byokProviderResolver?.(requestedModel) != null;
+      if (currentIsByok !== requestedIsByok) {
+        await this.deleteSession(normalizedKey);
+        return this.getOrCreateSession(normalizedKey, requestedModel, skillDirectories, disabledSkills, reviewSessionOptions);
+      }
+
       try {
         await this.ensureSessionModel(existing, normalizedKey, requestedModel);
         return this.sessions.get(normalizedKey) ?? existing;

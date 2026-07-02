@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { getFallbackFreeModelId, getModelDisplayName, normalizeSelectableModelId } from '@shared/constants/modelOptions';
+import { getFallbackFreeModelId, getModelDisplayName, isByokModel, normalizeSelectableModelId } from '@shared/constants/modelOptions';
 import { copyToClipboard } from '@renderer/utils/clipboard';
 import { AskMessage, FollowUpContext, FollowUpContextSummary, PullRequestSummary, ReviewJob } from '@shared/types/models';
 import { api } from '@renderer/services/api';
@@ -72,6 +72,18 @@ export default function FollowUpTab({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const autoScrollRef = useRef(true);
   const autoSelectRef = useRef(false);
+
+  // ── BYOK lock logic ────────────────────────────────────────────────
+  // A follow-up context is always created from a review that already ran.
+  // The model is locked immediately based on the review's model.
+  const isByokReview = isByokModel(activeContext?.modelName ?? '');
+  const isFullyLocked = isByokReview;
+  const isPartiallyLocked = activeContext !== null && !isByokReview;
+
+  // When partially locked (non-BYOK review), exclude BYOK options entirely.
+  const filteredModelOptions = isPartiallyLocked
+    ? modelOptions.filter((opt) => !isByokModel(opt.id))
+    : modelOptions;
 
   const startResizeInput = useResizeDrag({
     direction: 'vertical',
@@ -242,6 +254,8 @@ export default function FollowUpTab({
     const userMsg: AskMessage = { role: 'user', content: userText, timestamp: new Date().toISOString(), modelName: normalizedModelName };
     const assistantMsg: AskMessage = { role: 'assistant', content: '', timestamp: new Date().toISOString(), modelName: normalizedModelName };
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    // Immediately sync activeContext so the BYOK lock takes effect before the response.
+    setActiveContext((prev) => prev ? { ...prev, modelName: normalizedModelName, messages: [...prev.messages, userMsg] } : prev);
     setIsStreaming(true);
 
     try {
@@ -502,10 +516,12 @@ export default function FollowUpTab({
             <div className={styles.followupInputRow}>
               <ModelSelect
                 value={modelName}
-                options={modelOptions}
+                options={filteredModelOptions}
                 onChange={(value) => setModelName(normalizeSelectableModelId(value))}
                 className={`model-select ${styles.followupModelSelect}`}
                 keyPrefix="followup"
+                disabled={isFullyLocked}
+                disabledMessage={isFullyLocked ? 'This follow-up uses a BYOK model. The model cannot be changed.' : undefined}
               />
             </div>
             <div className={`${styles.followupInputRow} ${styles.followupInputMain}`}>

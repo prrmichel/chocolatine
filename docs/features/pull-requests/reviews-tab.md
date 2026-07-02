@@ -17,7 +17,7 @@ The Reviews tab is where you launch AI code reviews and explore the results. You
 
 - **Select a prompt** — Choose from the PR Review category in the Prompt Library.
 - **Prompt required** — Review launch is disabled until at least one PR Review prompt exists.
-- **Select a model** — Pick any supported model or leave the default. The modal shows a side metadata panel for the selected model from SDK `ModelInfo` (policy, capabilities, limits, reasoning support, billing multiplier).
+- **Select a model** — Pick any supported model or leave the default. The modal shows a side metadata panel for the selected model from SDK `ModelInfo` (policy, capabilities, limits, reasoning support, billing multiplier). BYOK models (configured in [AI Providers](../../settings/ai-providers.md)) appear with a distinct badge and no cost multiplier.
 - **Standard review launch** — The normal review path prepares or refreshes the PR worktree when you click **Run Review**, then runs a branch-aware review against that PR-scoped checkout. This path requires a configured **review worktree root folder** in [Preferences](../../settings/preferences.md).
 - **Custom instructions** — Add per-run instructions that are appended to the prompt.
 - **Exclude file types** — Specify file extensions to exclude from the review (e.g., `*.md; *.json`). Matching files are removed from the branch-aware change-boundary block and from any diff-text fallback payload, keeping reviews focused on the code that matters.
@@ -66,6 +66,7 @@ The Reviews tab is where you launch AI code reviews and explore the results. You
 - Branch-aware follow-up and re-review work best when you keep using the same prepared PR context and refresh it after new commits are pushed to the source branch.
 - The re-review feature reuses the Copilot session, so the model remembers its prior analysis. Use it to iterate: run once, check findings, add custom instructions, re-review.
 - Define [Rules](../rules-library.md) for your codebase languages — they are automatically injected and improve finding quality significantly.
+- BYOK models (configured in [AI Providers](../../settings/ai-providers.md)) are first-class options for reviews. Switching between Copilot and BYOK models for the same PR starts a fresh session.
 - Use the **Exclude file types** field to skip auto-generated, configuration, or documentation files that add noise to review results.
 
 ## Related

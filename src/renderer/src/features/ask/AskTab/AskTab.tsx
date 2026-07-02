@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AskContext, AskMessage } from '@shared/types/models';
-import { normalizeSelectableModelId } from '@shared/constants/modelOptions';
+import { isByokModel, normalizeSelectableModelId } from '@shared/constants/modelOptions';
 import { api } from '@renderer/services/api';
 import { useSpeechRecognition } from '@renderer/features/ask/hooks/useSpeechRecognition';
 import { useResizeDrag } from '@renderer/hooks/useResizeDrag';
@@ -44,6 +44,22 @@ export default function AskTab({
 
   const { isListening, isSpeechSupported, speechError, startListening, stopListening } = useSpeechRecognition();
   const activeContext = contexts.find((c) => c.id === activeContextId) ?? null;
+
+  // ── BYOK lock logic ────────────────────────────────────────────────
+  // A context is "consumed" once it has at least one message.
+  // - No messages       → free (any model, including BYOK)
+  // - Messages + BYOK   → fully locked (cannot change at all)
+  // - Messages + non-BYOK → partially locked (can switch between non-BYOK only)
+  const hasMessages = (activeContext?.messages.length ?? 0) > 0;
+  const contextModelName = activeContext?.modelName ?? modelName;
+  const isContextByok = isByokModel(contextModelName);
+  const isFullyLocked = hasMessages && isContextByok;
+  const isPartiallyLocked = hasMessages && !isContextByok;
+
+  // When partially locked, exclude BYOK options entirely.
+  const filteredModelOptions = isPartiallyLocked
+    ? modelOptions.filter((opt) => !isByokModel(opt.id))
+    : modelOptions;
 
   useEffect(() => {
     modelNameRef.current = modelName;
@@ -119,8 +135,22 @@ export default function AskTab({
   useEffect(() => {
     setIsStreaming(false);
     if (!activeContextId) { setMessages([]); return; }
-    api.getAskMessages(activeContextId).then(setMessages).catch(() => {});
-  }, [activeContextId]);
+    // Sync model selector with the active context's model so the BYOK lock
+    // follows context switches (context A uses BYOK → selector locks;
+    // switch to context B with non-BYOK → selector unlocks).
+    if (activeContext) {
+      setModelName(normalizeSelectableModelId(activeContext.modelName));
+    }
+    api.getAskMessages(activeContextId).then((loadedMessages) => {
+      setMessages(loadedMessages);
+      // Sync contexts so activeContext.messages reflects persisted state for the BYOK lock.
+      if (loadedMessages.length > 0) {
+        setContexts((prev) => prev.map((c) =>
+          c.id === activeContextId ? { ...c, messages: loadedMessages } : c
+        ));
+      }
+    }).catch(() => {});
+  }, [activeContextId, activeContext]);
 
   useEffect(() => {
     const unsubDelta = api.onAskDelta((payload) => {
@@ -164,6 +194,12 @@ export default function AskTab({
     const userMsg: AskMessage = { role: 'user', content: userText, timestamp: new Date().toISOString(), modelName };
     const assistantMsg: AskMessage = { role: 'assistant', content: '', timestamp: new Date().toISOString() };
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    // Immediately sync the context's modelName and messages so the BYOK lock
+    // (isFullyLocked / isPartiallyLocked) takes effect before the response arrives.
+    setContexts((prev) => prev.map((c) => {
+      if (c.id !== contextId) return c;
+      return { ...c, modelName, messages: [...c.messages, userMsg] };
+    }));
     setIsStreaming(true);
 
     try {
@@ -243,11 +279,13 @@ export default function AskTab({
         <div className={styles.askInputRow}>
           <ModelSelect
             value={modelName}
-            options={modelOptions}
+            options={filteredModelOptions}
             onChange={(next) => setModelName(normalizeSelectableModelId(next))}
             className={`model-select ${styles.askModelSelect}`}
             unavailableMessage={modelCatalogUnavailableMessage ?? LABELS.modelCatalogUnavailable}
             keyPrefix="ask-tab"
+            disabled={isFullyLocked}
+            disabledMessage={isFullyLocked ? LABELS.modelLockedByok : undefined}
           />
         </div>
         <div className={`${styles.askInputRow} ${styles.askInputMain}`}>

@@ -72,7 +72,7 @@ const makeProvider = (overrides: Partial<{ id: string; label: string; baseUrl: s
   id: overrides.id ?? 'byok-test-1',
   label: overrides.label ?? 'Test DeepSeek',
   type: 'openai' as const,
-  baseUrl: overrides.baseUrl ?? 'https://api.deepseek.com/v1'
+  baseUrl: overrides.baseUrl ?? 'https://api.deepseek.com'
 });
 
 // ── Tests ────────────────────────────────────────────────────────────
@@ -94,7 +94,7 @@ test('saveByokProvider stores provider metadata without API key', () => {
   assert.equal(stored[0].id, 'byok-test-1');
   assert.equal(stored[0].label, 'Test DeepSeek');
   assert.equal(stored[0].type, 'openai');
-  assert.equal(stored[0].baseUrl, 'https://api.deepseek.com/v1');
+  assert.equal(stored[0].baseUrl, 'https://api.deepseek.com');
   // API key must NOT be in the stored metadata
   assert.equal('apiKey' in stored[0], false);
   assert.equal('hasStoredApiKey' in stored[0], false);
@@ -104,13 +104,13 @@ test('updateByokProvider updates existing provider metadata', () => {
   const db = createMockDatabaseService();
   db.saveByokProvider(makeProvider());
 
-  const updated = makeProvider({ label: 'Renamed DeepSeek', baseUrl: 'https://api.deepseek.com/v1/chat' });
+  const updated = makeProvider({ label: 'Renamed DeepSeek', baseUrl: 'https://api.deepseek.com/chat' });
   db.updateByokProvider(updated);
 
   const stored = db.getByokProviders();
   assert.equal(stored.length, 1);
   assert.equal(stored[0].label, 'Renamed DeepSeek');
-  assert.equal(stored[0].baseUrl, 'https://api.deepseek.com/v1/chat');
+  assert.equal(stored[0].baseUrl, 'https://api.deepseek.com/chat');
 });
 
 test('updateByokProvider adds provider if it does not exist', () => {

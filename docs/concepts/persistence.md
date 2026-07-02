@@ -34,6 +34,7 @@ Chocolatine stores persistent data locally using two mechanisms: a JSON settings
 | **Organizations** | List of Azure DevOps organizations, each with a name and PAT. |
 | **PR Sources** | List of PR sources linking an organization to a project and optional repository filter. |
 | **Active PR Source** | The currently selected PR source ID. |
+| **AI Providers** | BYOK provider metadata (label, endpoint, `hasStoredApiKey` flag, active provider ID). API keys are stored in OS-protected storage, never in the settings file. |
 | **Preferences** | Default model, max concurrent reviews, diff mode, display name. |
 | **Panel colors** | PR list, file tree, follow-up panel background colors. |
 
@@ -45,6 +46,7 @@ Chocolatine is local-first, but some features require external API calls.
 |-------------|--------------|-----|
 | **Azure DevOps REST API** | Organization/project/repository identifiers, PAT (for auth), PR/work-item request parameters. | Load pull requests, file changes, comments, and linked work items. |
 | **GitHub Copilot** | Prompt templates, selected review context, diffs/chunks, and follow-up/Ask chat content. | Generate AI-assisted reviews, summaries, and chat responses. |
+| **BYOK Provider API** (e.g., DeepSeek) | API key (for auth), model list request, prompt and context (for inference). | Discover available models and route AI requests to the third-party provider. |
 
 Chocolatine does **not** sync your local SQLite database to a cloud backend.
 
@@ -71,6 +73,7 @@ The protected-storage fallback contract has been defined as **fail-closed on sav
 - A successful connection test does not override the secure-storage requirement for save.
 - If a stored protected PAT later cannot be decrypted, Azure DevOps actions that require a PAT fail explicitly and direct the user back to Settings.
 - This decision is implemented in follow-up hardening work (#22).
+- The same OS-protected storage mechanism and fail-closed contract apply to BYOK API keys. See [AI Providers Settings](../settings/ai-providers.md).
 
 
 ## Migrations
@@ -88,6 +91,7 @@ Migrations are automatic and transparent. You don't need to take any action.
 ## Related
 
 - [Data Management Settings](../settings/data-management.md) — Relocate database and purge data.
+- [AI Providers Settings](../settings/ai-providers.md) — API key storage and security.
 - [Session Management](session-management.md) — How session mappings are stored.
 - [Rules Library](../features/rules-library.md) — Rules stored in the database.
 - [Prompt Library](../features/prompt-library.md) — Prompts stored in the database.

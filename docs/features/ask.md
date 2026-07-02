@@ -23,7 +23,7 @@ Click **Ask** in the main navigation tab bar.
 
 - **Send messages** with streaming output (answers appear incrementally).
 - **Cancel** an in-flight response.
-- **Select the model** per context — change it at any time.
+- **Select the model** per context — change it at any time. BYOK models (configured in [AI Providers](../settings/ai-providers.md)) appear in the selector with a badge.
 - **Resize** the input text area.
 - **Seed from other workflows** — Other parts of the app can pre-fill the Ask input with an initial message.
 
