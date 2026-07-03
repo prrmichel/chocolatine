@@ -105,7 +105,6 @@ export default function ChangesTab({
   const deferredFileFilterText = useDeferredValue(fileFilterText);
   const changesRef = useRef<HTMLDivElement | null>(null);
   const changesBodyRef = useRef<HTMLDivElement | null>(null);
-  const followUpBodyRef = useRef<HTMLDivElement | null>(null);
   const diffViewBodyRef = useRef<HTMLDivElement | null>(null);
   const hasInitializedFollowUpHeightRef = useRef(false);
 
@@ -173,11 +172,7 @@ export default function ChangesTab({
     }
   }, [changesListWidth]);
 
-  useEffect(() => {
-    if (changesBodyRef.current) {
-      changesBodyRef.current.style.setProperty('--follow-up-panel-height', `${followUpPanelHeight}px`);
-    }
-  }, [followUpPanelHeight]);
+
 
   const selectedDiff = useMemo(
     () => diffs.find((diff) => diff.path === selectedDiffPath) ?? diffs[0],
@@ -698,24 +693,22 @@ export default function ChangesTab({
           {followUpPanelOpen && (
             <>
               <div className={styles.followUpHSplitter} onMouseDown={startResizeFollowUp} />
-              <div className={styles.followUpPanel}>
-                <div className={styles.followUpPanelBody} ref={followUpBodyRef}>
-                  {pullRequest && (
-                    <FollowUpTab
-                      pullRequest={pullRequest}
-                      reviewJobs={reviewJobs}
-                      modelOptions={modelOptions}
-                      pendingContextId={followUpPendingContextId}
-                      onPendingContextHandled={() => setFollowUpPendingContextId(null)}
-                      pendingAskJobId={askPendingJobId}
-                      pendingAskMessage={askPendingMessage}
-                      onPendingAskHandled={() => { setAskPendingJobId(null); setAskPendingMessage(''); }}
-                      layout="tabs"
-                      runNumbers={runNumbers}
-                      onClose={() => onFollowUpPanelOpenChange(false)}
-                    />
-                  )}
-                </div>
+              <div className={styles.followUpPanel} style={{ height: `${followUpPanelHeight}px` }}>
+                {pullRequest && (
+                  <FollowUpTab
+                    pullRequest={pullRequest}
+                    reviewJobs={reviewJobs}
+                    modelOptions={modelOptions}
+                    pendingContextId={followUpPendingContextId}
+                    onPendingContextHandled={() => setFollowUpPendingContextId(null)}
+                    pendingAskJobId={askPendingJobId}
+                    pendingAskMessage={askPendingMessage}
+                    onPendingAskHandled={() => { setAskPendingJobId(null); setAskPendingMessage(''); }}
+                    layout="tabs"
+                    runNumbers={runNumbers}
+                    onClose={() => onFollowUpPanelOpenChange(false)}
+                  />
+                )}
               </div>
             </>
           )}
