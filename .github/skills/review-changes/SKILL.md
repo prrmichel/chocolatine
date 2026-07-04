@@ -65,6 +65,7 @@ Apply the checklist that matches the language of the changed files. If a PR touc
 - [ ] **Magic values are named constants.** Numbers, strings, and configuration values are extracted with descriptive names.
 - [ ] **Error handling is appropriate.** Errors are caught at the right level. Retry logic exists for transient failures. Circuit breakers for external calls.
 - [ ] **Logging is at the correct level.** No secrets in logs. Structured logging where appropriate.
+- [ ] **Lint passes.** `npm run lint` exits clean with zero errors and zero warnings. Lint failures are blockers — fix them before anything else.
 - [ ] **Tests exist for new behavior.** New logic has corresponding tests. Edge cases and error paths are covered.
 - [ ] **Regression test cases provided for each fix.** For every Critical or Warning finding, describe a concrete user scenario to verify the fix doesn't break existing behavior. Include: the action the user takes, the expected outcome, and what would indicate a regression.
 - [ ] **Dependencies are verified.**
