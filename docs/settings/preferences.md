@@ -17,7 +17,7 @@ The Preferences tab in the Settings modal controls the app's general behavior an
 
 | Setting | Description |
 |---------|-------------|
-| **Default model** | The model pre-selected for new reviews and chats. Can be overridden per review run. **Auto** is the safe default. A metadata panel next to the picker shows key SDK `ModelInfo` fields (policy, capabilities, limits, reasoning support, billing multiplier). See [Supported Models](../reference/supported-models.md) for model-catalog behavior. |
+| **Default model** | The model pre-selected for new reviews and chats. Can be overridden per review run. **Auto** is the safe default. A metadata panel next to the picker shows key SDK `ModelInfo` fields (policy, capabilities, limits, reasoning support, billing multiplier). BYOK models (configured in [AI Providers](ai-providers.md)) also appear in this dropdown with a visual badge and no multiplier. See [Supported Models](../reference/supported-models.md) for model-catalog behavior. |
 | **Review worktree root folder** | Required for the standard branch-aware review path. Chocolatine creates its managed `mirrors/` and `worktrees/` folders under this root. Pick a short local path on Windows to reduce `Filename too long` failures during git worktree preparation. |
 
 ### Review Queue
@@ -61,6 +61,7 @@ The Preferences tab in the Settings modal controls the app's general behavior an
 ## Related
 
 - [Azure DevOps Settings](azure-devops.md) — Connection configuration.
+- [AI Providers Settings](ai-providers.md) — Configure BYOK providers like DeepSeek.
 - [Data Management Settings](data-management.md) — Database and cleanup.
 - [Supported Models](../reference/supported-models.md) — SDK-driven model-catalog behavior.
 - [Changes Tab](../features/pull-requests/changes-tab.md) — Where diff display mode is applied.

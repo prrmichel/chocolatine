@@ -87,6 +87,10 @@ const copilotReviewService = new CopilotReviewService();
 const reviewStorageService = new ReviewStorageService(databaseService);
 const copilotSessionManager = new CopilotSessionManager(databaseService);
 copilotReviewService.setSessionManager(copilotSessionManager);
+// Wire BYOK provider resolution for session injection
+copilotReviewService.setByokProviderResolver(
+  (modelName) => settingsStore.resolveByokProvider(modelName)
+);
 const promptLibraryService = new PromptLibraryService(databaseService);
 const askService = new AskService(copilotReviewService, copilotSessionManager);
 const followUpService = new FollowUpService(copilotReviewService, reviewStorageService, copilotSessionManager);

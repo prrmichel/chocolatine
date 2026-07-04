@@ -2,6 +2,5 @@ export type {
   ModelBilling,
   ModelCapabilities,
   ModelInfo,
-  ModelPolicy,
-  ReasoningEffort
+  ModelPolicy
 } from '@github/copilot-sdk';

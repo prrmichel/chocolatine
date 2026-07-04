@@ -35,6 +35,17 @@ export interface ReviewStorageSettings {
   folderPath?: string | null;
 }
 
+export type ByokProviderType = 'openai';
+
+export interface ByokProviderConfig {
+  id: string;
+  label: string;
+  type: ByokProviderType;
+  baseUrl: string;
+  /** True when an API key is stored in OS-protected storage (never sent to renderer). */
+  hasStoredApiKey?: boolean;
+}
+
 export interface DatabaseSettings {
   folderPath?: string | null;
 }
@@ -52,16 +63,20 @@ export interface AppSettings {
   defaultDiffViewMode?: 'inline' | 'side';
   myDisplayName?: string | null;
   skillsSourcePath?: string;
+  byokProviders?: ByokProviderConfig[];
+  activeByokProviderId?: string | null;
 }
 
-export type SettingsSaveIssueScope = 'organization' | 'prSource' | 'general';
+export type SettingsSaveIssueScope = 'organization' | 'prSource' | 'byokProvider' | 'general';
 
 export type SettingsSaveIssueCode =
   | 'protected-storage-unavailable'
   | 'pat-required'
   | 'dependent-pr-source-rejected'
   | 'invalid-organization'
-  | 'invalid-pr-source';
+  | 'invalid-pr-source'
+  | 'invalid-byok-provider'
+  | 'api-key-required';
 
 export interface SettingsSaveIssue {
   code: SettingsSaveIssueCode;

@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { getFallbackFreeModelId, normalizeDefaultModelId } from '@shared/constants/modelOptions';
-import { AdoOrganization, AppSettings, PrSource, SettingsSaveIssue, SettingsSaveResult } from '@shared/types/models';
+import { AdoOrganization, AppSettings, ByokProviderConfig, PrSource, SettingsSaveIssue, SettingsSaveResult } from '@shared/types/models';
 import { api } from '@renderer/services/api';
 import type { SettingsTabId } from '@renderer/stores/app/useUIStore';
 import ConfirmDialog from '@renderer/features/shared/ConfirmDialog/ConfirmDialog';
 import AdoTab from './AdoTab/AdoTab';
+import ByokTab from './ByokTab/ByokTab';
 import PreferencesTab from './PreferencesTab/PreferencesTab';
 import DataTab from './DataTab/DataTab';
 import {
   LABELS,
+  BYOK_DELETE_LABELS,
   buildDeleteOrganizationCascadeMessage,
   buildDeleteOrganizationMessage,
+  buildDeleteByokProviderMessage,
   confirmPurgeMessage,
   purgeResultMessage
 } from './SettingsModal.messages';
@@ -50,6 +53,7 @@ export default function SettingsModal({
   const [activeTab, setActiveTab] = useState<SettingsTabId>('ado');
   const [organizations, setOrganizations] = useState<AdoOrganization[]>([]);
   const [prSources, setPrSources] = useState<PrSource[]>([]);
+  const [byokProviders, setByokProviders] = useState<ByokProviderConfig[]>([]);
   const [defaultModel, setDefaultModel] = useState(getFallbackFreeModelId());
   const [defaultDiffViewMode, setDefaultDiffViewMode] = useState<'inline' | 'side'>('inline');
   const [myDisplayName, setMyDisplayName] = useState('');
@@ -80,6 +84,7 @@ export default function SettingsModal({
 
     setOrganizations(settings.organizations ?? []);
     setPrSources(settings.prSources ?? []);
+    setByokProviders(settings.byokProviders ?? []);
     setDefaultModel(normalizeDefaultModelId(settings.defaultModel));
     setDefaultDiffViewMode(settings.defaultDiffViewMode ?? 'inline');
     setMyDisplayName(settings.myDisplayName ?? '');
@@ -221,6 +226,26 @@ export default function SettingsModal({
     });
   };
 
+  const handleDeleteByokProvider = (providerId: string) => {
+    const provider = byokProviders.find((item) => item.id === providerId);
+    if (!provider) return;
+
+    setConfirmAction({
+      title: BYOK_DELETE_LABELS.title,
+      message: buildDeleteByokProviderMessage(provider.label),
+      confirmLabel: BYOK_DELETE_LABELS.confirm,
+      action: async () => {
+        clearSaveFeedback();
+        try {
+          const result = await api.deleteByokProvider(providerId);
+          setByokProviders(result.settings.byokProviders ?? []);
+        } catch (err: unknown) {
+          console.error('[SettingsModal] Failed to delete BYOK provider:', err);
+        }
+      }
+    });
+  };
+
   return (
     <div className="modal-backdrop">
       <div className={`modal ${styles.settingsModal}`} onClick={(event) => event.stopPropagation()}>
@@ -234,6 +259,12 @@ export default function SettingsModal({
               onClick={() => setActiveTab('ado')}
             >
               <i className="fa-solid fa-cloud" /> {LABELS.tabAdo}
+            </button>
+            <button
+              className={`${styles.tab}${activeTab === 'byok' ? ` ${styles.tabActive}` : ''}`}
+              onClick={() => setActiveTab('byok')}
+            >
+              <i className="fa-solid fa-server" /> {LABELS.tabByok}
             </button>
             <button
               className={`${styles.tab}${activeTab === 'preferences' ? ` ${styles.tabActive}` : ''}`}
@@ -278,6 +309,18 @@ export default function SettingsModal({
                   setMyDisplayName(value);
                 }}
                 onRequestDeleteOrganization={handleDeleteOrganization}
+              />
+            )}
+
+            {activeTab === 'byok' && (
+              <ByokTab
+                providers={byokProviders}
+                saveIssues={saveFeedback?.issues ?? []}
+                onProvidersChange={(next) => {
+                  clearSaveFeedback();
+                  setByokProviders(next);
+                }}
+                onRequestDeleteProvider={handleDeleteByokProvider}
               />
             )}
 

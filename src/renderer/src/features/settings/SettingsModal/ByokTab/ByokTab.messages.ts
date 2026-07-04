@@ -1,0 +1,30 @@
+/** User-facing labels for ByokTab */
+
+export const BYOK_LABELS = {
+  heading: 'AI Providers (BYOK)',
+  addProvider: 'Add provider',
+  providerLabel: 'Provider label',
+  providerLabelPlaceholder: 'e.g. My DeepSeek',
+  baseUrlPlaceholder: 'https://api.deepseek.com',
+  baseUrl: 'API base URL',
+  apiKey: 'API key',
+  apiKeyRequired: 'Required',
+  apiKeyKeepStored: 'Leave blank to keep the stored key.',
+  apiKeyReplacePlaceholder: 'Enter a new key to replace the stored one.',
+  apiKeyPlaceholder: 'sk-...',
+  apiKeyStored: 'Key stored',
+  apiKeyMissing: 'Key missing',
+  showApiKey: 'Show API key',
+  hideApiKey: 'Hide API key',
+  testConnection: 'Test connection',
+  testing: 'Testing…',
+  save: 'Save',
+  cancel: 'Cancel',
+  edit: 'Edit',
+  delete: 'Delete',
+  helper: 'Bring your own API keys from OpenAI-compatible providers (DeepSeek, etc.). Keys are encrypted with OS-protected storage.',
+  noProviders: 'No AI providers configured yet. Add one to use models from your own API key.',
+  deleteProviderTitle: 'Delete provider',
+  deleteProviderMessage: (label: string) => `Delete the AI provider "${label}" and its stored API key?`,
+  confirmDelete: 'Delete'
+};

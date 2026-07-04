@@ -2,6 +2,7 @@ import {
   AppSettings,
   AskContext,
   AskMessage,
+  ByokProviderConfig,
   FollowUpContext,
   FollowUpContextSummary,
   ModelInfo,
@@ -27,6 +28,7 @@ import {
   SkillScope,
   SkillSyncResult
 } from '@shared/types/models';
+import type { KnownModelDefinition } from '@shared/constants/modelOptions';
 
 declare global {
   interface Window {
@@ -44,6 +46,10 @@ declare global {
       testOrgConnection: (orgName: string, pat: string) => Promise<{ ok: boolean; message: string }>;
       testStoredOrgConnection: (orgId: string, orgName?: string) => Promise<{ ok: boolean; message: string }>;
       setActivePrSource: (id: string | null) => Promise<AppSettings>;
+      saveByokProvider: (provider: ByokProviderConfig, apiKey: string) => Promise<SettingsSaveResult>;
+      deleteByokProvider: (providerId: string) => Promise<SettingsSaveResult>;
+      testByokConnection: (providerId: string, apiKey: string, baseUrl: string) => Promise<{ ok: boolean; message: string; models?: string[] }>;
+      listByokProviderModels: () => Promise<KnownModelDefinition[]>;
       getPullRequestDetails: (id: number) => Promise<any>;
       getPullRequestWorkItems: (repositoryId: string, id: number) => Promise<any[]>;
       getPullRequestDiffs: (id: number) => Promise<any[]>;
@@ -133,6 +139,10 @@ const createMissingApi = (): RendererApi => ({
   testOrgConnection: fail,
   testStoredOrgConnection: fail,
   setActivePrSource: fail,
+  saveByokProvider: fail,
+  deleteByokProvider: fail,
+  testByokConnection: fail,
+  listByokProviderModels: fail,
   getPullRequestDetails: fail,
   getPullRequestWorkItems: fail,
   getPullRequestDiffs: fail,

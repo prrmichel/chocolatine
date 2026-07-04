@@ -19,9 +19,37 @@ const COPILOT_CLIENT_NAME = 'Chocolatine';
  */
 export class CopilotReviewService {
   private sessionManager?: CopilotSessionManager;
+  private byokProviderResolver?: (modelName: string) => { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined;
 
   setSessionManager(manager: CopilotSessionManager): void {
     this.sessionManager = manager;
+  }
+
+  /** Set the BYOK provider resolver — also set on the session manager. */
+  setByokProviderResolver(resolver: (modelName: string) => { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined): void {
+    this.byokProviderResolver = resolver;
+    this.sessionManager?.setByokProviderResolver(resolver);
+  }
+
+  /** Resolve BYOK provider config for legacy session creation. */
+  private resolveByokProviderForSession(modelName?: string | null): Record<string, unknown> {
+    if (!this.byokProviderResolver || !modelName || modelName === 'Auto') return {};
+    const provider = this.byokProviderResolver(modelName);
+    if (!provider) return {};
+
+    return {
+      model: `${provider.providerId}/${modelName}`,
+      providers: [{
+        name: provider.providerId,
+        type: provider.type,
+        baseUrl: provider.baseUrl,
+        apiKey: provider.apiKey
+      }],
+      models: [{
+        id: modelName,
+        provider: provider.providerId
+      }]
+    };
   }
 
   /**
@@ -88,7 +116,8 @@ export class CopilotReviewService {
         onPermissionRequest: approveAll,
         ...(options?.reviewSessionOptions?.workingDirectory?.trim()
           ? { workingDirectory: options.reviewSessionOptions.workingDirectory.trim() }
-          : {})
+          : {}),
+        ...(this.resolveByokProviderForSession(modelName) ?? {})
       });
 
       const abortListener = () => {

@@ -8,6 +8,10 @@ export interface KnownModelDefinition {
   name: string;
   multiplier: number;
   aliases: string[];
+  /** Non-null for BYOK models — identifies the provider (e.g. 'byok-123'). */
+  providerId?: string | null;
+  /** Human-readable BYOK provider label shown in the model selector (e.g. 'Mon DeepSeek'). */
+  providerLabel?: string | null;
 }
 
 export interface ModelOption {
@@ -15,6 +19,8 @@ export interface ModelOption {
   name: string;
   multiplier: number | null;
   aliases?: string[];
+  providerId?: string | null;
+  providerLabel?: string | null;
 }
 
 export interface ModelSelectOption {
@@ -174,6 +180,28 @@ export const getModelDisplayName = (value: string | null | undefined): string =>
   return trimmed;
 };
 
+/**
+ * Returns true when the given model ID resolves to a BYOK model
+ * (a model with a non-null {@link KnownModelDefinition.providerId}).
+ *
+ * Accepts an optional model map for pure, testable usage.
+ * When omitted, falls back to the module-level {@link knownModelById}.
+ */
+export const isByokModel = (
+  modelId: string,
+  knownById: Map<string, KnownModelDefinition> = knownModelById
+): boolean => {
+  if (!modelId || modelId === AUTO_MODEL_ID) {
+    return false;
+  }
+  const normalized = normalizeModelId(modelId, { allowAuto: false, fallback: 'none' });
+  if (!normalized) {
+    return false;
+  }
+  const model = knownById.get(normalized);
+  return model?.providerId != null;
+};
+
 export const toSdkModel = (value: string | null | undefined): string | undefined => {
   const normalized = normalizeSelectableModelId(value);
   return normalized === AUTO_MODEL_ID ? undefined : normalized;
@@ -195,8 +223,15 @@ export const formatModelLabel = (id: string, multiplier: number | null, nameWidt
   return `${paddedName} ${multiplierText}`;
 };
 
+/** Format a model name with an optional BYOK provider badge. */
+export const formatProviderModelLabel = (name: string, providerLabel?: string | null): string =>
+  providerLabel ? `${name} (${providerLabel})` : name;
+
 export const buildModelOptions = (): ModelSelectOption[] => {
-  return modelOptions.map((model) => ({ id: model.id, label: model.name }));
+  return modelOptions.map((model) => ({
+    id: model.id,
+    label: formatProviderModelLabel(model.name, model.providerLabel)
+  }));
 };
 
 export const reconcileSelectableModelId = (

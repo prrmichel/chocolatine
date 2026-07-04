@@ -10,7 +10,7 @@ const tabs = [
 
 export type TabId = (typeof tabs)[number]['id'];
 export { tabs };
-export type SettingsTabId = 'ado' | 'preferences' | 'data';
+export type SettingsTabId = 'ado' | 'preferences' | 'data' | 'byok';
 
 interface UIState {
   activeTab: TabId;

@@ -7,6 +7,7 @@ import { api } from '@renderer/services/api';
 import ConfirmDialog from '@renderer/features/shared/ConfirmDialog/ConfirmDialog';
 import ModelSelect from '@renderer/features/shared/ModelSelect/ModelSelect';
 import { useResizeDrag } from '@renderer/hooks/useResizeDrag';
+import { useByokModelLock } from '@renderer/hooks/useByokModelLock';
 import styles from './FollowUpTab.module.css';
 
 function formatRunDate(dateStr: string | undefined | null): string {
@@ -72,6 +73,14 @@ export default function FollowUpTab({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const autoScrollRef = useRef(true);
   const autoSelectRef = useRef(false);
+
+  // ── BYOK lock logic ────────────────────────────────────────────────
+  const { filteredModelOptions, disabled, disabledMessage } = useByokModelLock({
+    contextModelName: activeContext?.modelName ?? '',
+    hasMessages: activeContext !== null,
+    modelOptions,
+    lockMessage: 'This follow-up uses a BYOK model. The model cannot be changed.'
+  });
 
   const startResizeInput = useResizeDrag({
     direction: 'vertical',
@@ -216,10 +225,10 @@ export default function FollowUpTab({
     return () => { unsubDelta(); unsubComplete(); };
   }, [activeContextId, pullRequest]);
 
-  // Auto-scroll
+  // Auto-scroll using direct scrollTop (avoids scrollIntoView layout issues in Electron)
   useEffect(() => {
-    if (autoScrollRef.current && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (autoScrollRef.current && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -242,6 +251,8 @@ export default function FollowUpTab({
     const userMsg: AskMessage = { role: 'user', content: userText, timestamp: new Date().toISOString(), modelName: normalizedModelName };
     const assistantMsg: AskMessage = { role: 'assistant', content: '', timestamp: new Date().toISOString(), modelName: normalizedModelName };
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    // Immediately sync activeContext so the BYOK lock takes effect before the response.
+    setActiveContext((prev) => prev ? { ...prev, modelName: normalizedModelName, messages: [...prev.messages, userMsg] } : prev);
     setIsStreaming(true);
 
     try {
@@ -331,10 +342,9 @@ export default function FollowUpTab({
     handleSelectRunTab
   ]);
 
-  return (
-    <div className={styles.followupPanel} ref={panelRef}>
-      {/* Context selector: sidebar (default) or tabs */}
-      {layout === 'tabs' ? (
+  if (layout === 'tabs') {
+    return (
+      <div className={`${styles.followupPanel} ${styles.followupPanelTabs}`} ref={panelRef}>
         <div className={styles.followupTabsBar}>
           <i className={`fa-solid fa-comments ${styles.followupTabsIcon}`} aria-hidden="true" />
           {reviewJobs.length === 0 ? (
@@ -346,42 +356,89 @@ export default function FollowUpTab({
               const isActive = jobContexts.some((s) => s.id === activeContextId);
               const isLoading = creatingContextForJobId === job.id;
               return (
-                <button
-                  key={job.id}
-                  type="button"
+                <button key={job.id} type="button"
                   className={`${styles.followupTabBtn} ${isActive ? styles.active : ''}`}
-                  onClick={() => { void handleSelectRunTab(job); }}
-                  title={`${getModelDisplayName(job.modelName)} · ${new Date(job.completedAt ?? job.startedAt ?? job.queuedAt).toLocaleString()}${jobContexts.length > 0 ? `\n${jobContexts.length} session(s)` : '\nNo session yet – click to create'}`}
-                  disabled={isLoading}
-                >
-                  <span>
-                    {runNumbers?.has(job.id)
-                      ? `Run ${runNumbers.get(job.id)} · ${getModelDisplayName(job.modelName)}`
-                      : formatRunDate(job.completedAt ?? job.startedAt ?? job.queuedAt)}
-                  </span>
+                  onClick={() => { void handleSelectRunTab(job); }} disabled={isLoading}
+                  title={`${getModelDisplayName(job.modelName)} · ${new Date(job.completedAt ?? job.startedAt ?? job.queuedAt).toLocaleString()}`}>
+                  <span>{runNumbers?.has(job.id) ? `Run ${runNumbers.get(job.id)} · ${getModelDisplayName(job.modelName)}` : formatRunDate(job.completedAt ?? job.startedAt ?? job.queuedAt)}</span>
                   {isLoading && <i className={`fa-solid fa-spinner fa-spin ${styles.followupTabSpinner}`} aria-hidden="true" />}
-                  {!isLoading && totalMsgs > 0 && (
-                    <span className={styles.followupTabMsgCount}>{totalMsgs}</span>
-                  )}
+                  {!isLoading && totalMsgs > 0 && <span className={styles.followupTabMsgCount}>{totalMsgs}</span>}
                 </button>
               );
             })
           )}
           {onClose && (
-            <button
-              type="button"
-              className={`${styles.followupTabsClose} ${styles.followupTabsCloseSpacer}`}
-              onClick={onClose}
-              title="Collapse follow-up panel"
-              aria-label="Collapse follow-up panel"
-            >
+            <button type="button" className={`${styles.followupTabsClose} ${styles.followupTabsCloseSpacer}`} onClick={onClose} title="Collapse follow-up panel">
               <i className="fa-solid fa-chevron-down" aria-hidden="true" />
             </button>
           )}
         </div>
-      ) : (
-        /* Sidebar layout */
-        <div className={styles.followupSidebar}>
+        <div className={styles.followupContentScroll} ref={messagesContainerRef} onScroll={handleScroll}>
+          {activeContext && (
+            <div className={styles.followupContextInfo}>Review run: {activeContext.reviewJobId.substring(0, 12)}… · Model: {getModelDisplayName(activeContext.modelName)} · Created: {new Date(activeContext.createdAt).toLocaleString()}</div>
+          )}
+          {followUpError && <div className={styles.followupContextInfo} role="alert">{followUpError}</div>}
+          {activeContext?.sessionAvailable === false && (
+            <div className={styles.followupContextInfo} role="status">Follow-up is unavailable on this machine for this review run because the local Copilot session could not be resumed.</div>
+          )}
+          <div className={styles.followupMessages}>
+            {!activeContext && messages.length === 0 && (
+              <div className={styles.followupEmpty}><div>Select a review session above to start asking questions.</div></div>
+            )}
+            {(activeContext || messages.length > 0) && (
+              <>
+                {activeContext && messages.length === 0 && (
+                  <div className={styles.followupConversationSeparator}>
+                    <span>{activeContext.sessionAvailable === false ? 'The original follow-up session is not available on this machine.' : 'This follow-up is attached to a local Copilot session. Earlier turns are not stored in the app.'}</span>
+                  </div>
+                )}
+                {messages.map((msg, index) => (
+                  <div key={`${index}-${msg.role}`} className={msg.role === 'user' ? styles.followupBubbleUser : styles.followupBubbleAssistant}>
+                    <div className={styles.followupBubbleHeader}>
+                      <span>{msg.role === 'user' ? `You${msg.modelName ? ` · ${getModelDisplayName(msg.modelName)}` : ''}` : 'Copilot'}</span>
+                      {msg.role === 'assistant' && msg.content && (
+                        <button className={styles.followupCopyBtn} onClick={() => { void copyToClipboard(msg.content); }} title="Copy response"><i className="fa-regular fa-copy" aria-hidden="true" /></button>
+                      )}
+                    </div>
+                    <div>{msg.role === 'assistant' ? (msg.content ? <ReactMarkdown>{msg.content}</ReactMarkdown> : (isStreaming && index === messages.length - 1 && <span className={styles.followupStreamingCursor} />)) : <div className={styles.followupUserText}>{msg.content}</div>}</div>
+                    {msg.role === 'assistant' && isStreaming && index === messages.length - 1 && msg.content && <span className={styles.followupStreamingCursor} />}
+                  </div>
+                ))}
+              </>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+        <div className={styles.followupInputSplitter} onMouseDown={startResizeInput} />
+        <div className={styles.followupInputArea}>
+          <div className={styles.followupInputRow}>
+            <ModelSelect value={modelName} options={filteredModelOptions}
+              onChange={(value) => setModelName(normalizeSelectableModelId(value))}
+              className={`model-select ${styles.followupModelSelect}`} keyPrefix="followup"
+              disabled={disabled}
+              disabledMessage={disabledMessage} />
+          </div>
+          <div className={`${styles.followupInputRow} ${styles.followupInputMain}`}>
+            <textarea ref={inputRef} className={styles.followupTextarea}
+              placeholder="Ask a follow-up question... (Ctrl+Enter to send)"
+              value={inputText} onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={handleKeyDown} disabled={isStreaming || (activeContext?.sessionAvailable === false)} />
+            <div className={styles.followupInputButtons}>
+              {isStreaming ? (
+                <button className="btn btn-danger" onClick={cancelMessage} title="Cancel"><i className="fa-solid fa-stop" aria-hidden="true" /></button>
+              ) : (
+                <button className="btn accent" onClick={sendMessage} disabled={!inputText.trim() || (activeContext?.sessionAvailable === false)} title="Send"><i className="fa-solid fa-paper-plane" aria-hidden="true" /></button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.followupPanel} ref={panelRef}>
+      <div className={styles.followupSidebar}>
           {contextSummaries.length === 0 ? (
             <span className={styles.followupSidebarEmpty}>
               No follow-up conversations. Use &quot;Chat about this run&quot; in the Reviews tab to start one.
@@ -406,7 +463,6 @@ export default function FollowUpTab({
             ))
           )}
         </div>
-      )}
 
       <div className={styles.followupContentScroll} ref={messagesContainerRef} onScroll={handleScroll}>
         {/* Context info */}
@@ -502,10 +558,12 @@ export default function FollowUpTab({
             <div className={styles.followupInputRow}>
               <ModelSelect
                 value={modelName}
-                options={modelOptions}
+                options={filteredModelOptions}
                 onChange={(value) => setModelName(normalizeSelectableModelId(value))}
                 className={`model-select ${styles.followupModelSelect}`}
                 keyPrefix="followup"
+                disabled={disabled}
+                disabledMessage={disabledMessage}
               />
             </div>
             <div className={`${styles.followupInputRow} ${styles.followupInputMain}`}>

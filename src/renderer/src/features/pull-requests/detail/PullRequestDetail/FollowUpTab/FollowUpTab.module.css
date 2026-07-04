@@ -6,6 +6,14 @@
   overflow: hidden;
 }
 
+/* Layout used when embedded inside ChangesTab */
+.followup-panel-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .followup-sidebar {
   flex: 0 0 auto;
   border-bottom: 1px solid var(--vscode-border);
@@ -59,7 +67,7 @@
 }
 
 .followup-messages {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
   padding: var(--spacing-lg) var(--spacing-xl);
   display: flex;
@@ -68,7 +76,7 @@
 }
 
 .followup-content-scroll {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
   display: flex;

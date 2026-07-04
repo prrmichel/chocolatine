@@ -6,12 +6,20 @@ export const settingsApi: Pick<RendererApi,
   'updateSettings' |
   'pickReviewStorageFolder' |
   'testOrgConnection' |
-  'testStoredOrgConnection'
+  'testStoredOrgConnection' |
+  'saveByokProvider' |
+  'deleteByokProvider' |
+  'testByokConnection' |
+  'listByokProviderModels'
 > = {
   getSettings: preloadApi.getSettings,
   saveSettings: preloadApi.saveSettings,
   updateSettings: preloadApi.updateSettings,
   pickReviewStorageFolder: preloadApi.pickReviewStorageFolder,
   testOrgConnection: preloadApi.testOrgConnection,
-  testStoredOrgConnection: preloadApi.testStoredOrgConnection
+  testStoredOrgConnection: preloadApi.testStoredOrgConnection,
+  saveByokProvider: preloadApi.saveByokProvider,
+  deleteByokProvider: preloadApi.deleteByokProvider,
+  testByokConnection: preloadApi.testByokConnection,
+  listByokProviderModels: preloadApi.listByokProviderModels
 };

@@ -35,6 +35,7 @@ Current public posture: Windows-only, Azure DevOps-only, source-first, and self-
 ### Settings
 
 - [Azure DevOps](settings/azure-devops.md) — Organizations, PR sources, PAT, and connection test.
+- [AI Providers](settings/ai-providers.md) — Configure BYOK providers like DeepSeek.
 - [Preferences](settings/preferences.md) — Default model, diff mode, concurrency, panel colors.
 - [Data Management](settings/data-management.md) — Database location, purge, and cleanup.
 
@@ -42,6 +43,7 @@ Current public posture: Windows-only, Azure DevOps-only, source-first, and self-
 
 - [Review Execution](concepts/review-execution.md) — Queue mechanics, concurrency, chunking, usage diagnostics.
 - [Session Management](concepts/session-management.md) — How Copilot sessions are reused or isolated per feature.
+- [BYOK (Bring Your Own Key)](concepts/byok.md) — How third-party model providers integrate via the Copilot SDK.
 - [Persistence](concepts/persistence.md) — Local storage, PAT handling, external data flows, and migrations.
 - [Rules Injection](concepts/rules-injection.md) — How language rules are matched and injected into prompts.
 

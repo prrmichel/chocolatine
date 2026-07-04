@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, resolve } from 'path';
 import {
   AdoOrganizationMetadata,
   AppSettings,
+  ByokProviderConfig,
   CopilotReviewResult,
   FollowUpContext,
   FollowUpContextSummary,
@@ -590,6 +591,40 @@ export class DatabaseService {
       myDisplayName: prefs.myDisplayName || null,
       skillsSourcePath: prefs.skillsSourcePath || undefined
     };
+  }
+
+  // ─── BYOK providers ─────────────────────────────────────────────
+
+  getByokProviders(): Omit<ByokProviderConfig, 'hasStoredApiKey'>[] {
+    const raw = this.getPreference('byokProviders');
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) as Omit<ByokProviderConfig, 'hasStoredApiKey'>[];
+    } catch {
+      return [];
+    }
+  }
+
+  saveByokProvider(provider: Omit<ByokProviderConfig, 'hasStoredApiKey'>): void {
+    const providers = this.getByokProviders();
+    providers.push(provider);
+    this.setPreference('byokProviders', JSON.stringify(providers));
+  }
+
+  updateByokProvider(provider: Omit<ByokProviderConfig, 'hasStoredApiKey'>): void {
+    const providers = this.getByokProviders();
+    const index = providers.findIndex((p) => p.id === provider.id);
+    if (index === -1) {
+      providers.push(provider);
+    } else {
+      providers[index] = provider;
+    }
+    this.setPreference('byokProviders', JSON.stringify(providers));
+  }
+
+  deleteByokProvider(providerId: string): void {
+    const providers = this.getByokProviders().filter((p) => p.id !== providerId);
+    this.setPreference('byokProviders', JSON.stringify(providers));
   }
 
   // ─── Prompt library ─────────────────────────────────────────────

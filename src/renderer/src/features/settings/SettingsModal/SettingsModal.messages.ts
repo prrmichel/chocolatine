@@ -3,6 +3,7 @@
 export const LABELS = {
   heading: 'Settings',
   tabAdo: 'Azure DevOps',
+  tabByok: 'AI Providers',
   tabPreferences: 'Preferences',
   tabData: 'Data',
   // Organizations
@@ -98,3 +99,11 @@ export const buildDeleteOrganizationCascadeMessage = (
   const label = sourceNames.length === 1 ? 'PR source' : 'PR sources';
   return `Deleting "${organizationName}" will also delete ${sourceNames.length} dependent ${label}: ${sourceNames.join(', ')}.`;
 };
+
+export const BYOK_DELETE_LABELS = {
+  title: 'Delete provider',
+  confirm: 'Delete'
+} as const;
+
+export const buildDeleteByokProviderMessage = (label: string): string =>
+  `Delete the AI provider "${label}" and its stored API key?`;

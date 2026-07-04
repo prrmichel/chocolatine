@@ -30,6 +30,10 @@ interface ModelSelectProps {
   unavailableMessage?: string;
   /** Optional prefix for option keys to avoid React key clashes when multiple selectors exist */
   keyPrefix?: string;
+  /** When true, the entire selector is disabled — the dropdown cannot be opened. */
+  disabled?: boolean;
+  /** Tooltip shown when the selector is disabled (e.g. explaining why the model is locked). */
+  disabledMessage?: string;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -105,7 +109,9 @@ export default function ModelSelect({
   onChange,
   className = 'model-select',
   unavailableMessage = 'Copilot model catalog is unavailable.',
-  keyPrefix = 'model'
+  keyPrefix = 'model',
+  disabled = false,
+  disabledMessage
 }: ModelSelectProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -189,10 +195,14 @@ export default function ModelSelect({
   return (
     <div ref={rootRef} className={styles.root}>
       <div className={styles.selectorRow}>
+        <div className={styles.triggerWrapper}>
         <button
           type="button"
-          className={`select ${className} ${styles.trigger}`.trim()}
+          className={`select ${className} ${styles.trigger} ${disabled ? styles.triggerDisabled : ''}`.trim()}
           onClick={() => {
+            if (disabled) {
+              return;
+            }
             setIsDropdownOpen((current) => {
               const nextIsOpen = !current;
               if (nextIsOpen) {
@@ -203,6 +213,7 @@ export default function ModelSelect({
           }}
           aria-haspopup="listbox"
           aria-expanded={isDropdownOpen}
+          disabled={disabled}
         >
           <span className={styles.triggerColumns}>
             <span className={styles.triggerName}>{selectedSummary?.name ?? value}</span>
@@ -211,6 +222,10 @@ export default function ModelSelect({
           </span>
           <i className="fa-solid fa-chevron-down" aria-hidden="true" />
         </button>
+        {disabled && disabledMessage && (
+          <div role="tooltip" className={styles.disabledTooltip}>{disabledMessage}</div>
+        )}
+        </div>
 
         <div
           ref={infoTooltipContainerRef}

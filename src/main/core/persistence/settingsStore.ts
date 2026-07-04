@@ -6,10 +6,13 @@ import {
   AdoOrganization,
   AdoOrganizationMetadata,
   AzureDevOpsSettings,
+  ByokProviderConfig,
   PrSource,
   PromptCategory,
   SettingsSaveResult
 } from '@shared/types/models';
+import type { KnownModelDefinition } from '@shared/constants/modelOptions';
+import { ByokModelFetcher } from '@main/features/byok/ByokModelFetcher';
 import { getFallbackFreeModelId, normalizeDefaultModelId } from '@shared/constants/modelOptions';
 import { DatabaseService } from '@main/core/persistence/databaseService';
 import { applyAdoSettingsPolicy } from '@main/core/persistence/adoSettingsPolicy';
@@ -26,6 +29,8 @@ interface SettingsFile {
   azureDevOps: AzureDevOpsSettings;
   /** Organization PATs by organization ID (local-only, never stored in DB). */
   organizationTokens?: Record<string, string>;
+  /** BYOK API keys by provider ID (local-only, never stored in DB). */
+  byokApiKeys?: Record<string, string>;
 
   /** Legacy fields kept only for migration compatibility. */
   organizations?: AdoOrganization[];
@@ -167,6 +172,9 @@ export class SettingsStore {
   private filePrSourcesSeed: PrSource[];
   private fileActivePrSourceId: string | null;
   private databaseFolderPath: string | null;
+  /** BYOK API keys by provider ID (encrypted on disk, decrypted in memory). */
+  private byokApiKeys: Record<string, string>;
+  private byokModelFetcher = new ByokModelFetcher();
   private database: DatabaseService | null = null;
 
   constructor() {
@@ -178,6 +186,7 @@ export class SettingsStore {
     const loaded = this.loadSettingsFile();
     this.ado = loaded.azureDevOps;
     this.organizationTokens = loaded.organizationTokens ?? {};
+    this.byokApiKeys = loaded.byokApiKeys ?? {};
     this.legacyPlaintextOrganizationIds = new Set(loaded.legacyPlaintextOrganizationIds ?? []);
     this.legacyPlaintextAdoPat = Boolean(loaded.legacyPlaintextAdoPat);
     this.needsSecretRewrite = Boolean(loaded.needsSecretRewrite);
@@ -287,11 +296,17 @@ export class SettingsStore {
           apiVersion
         };
 
+    const byokProviders: ByokProviderConfig[] = (this.database?.getByokProviders() ?? []).map((prov) => ({
+      ...prov,
+      hasStoredApiKey: Boolean(this.byokApiKeys[prov.id])
+    }));
+
     return {
       azureDevOps: resolvedAdo,
       organizations,
       prSources,
       activePrSourceId,
+      byokProviders,
       database: { folderPath: this.databaseFolderPath },
       reviewQueue: dbSettings.reviewQueue ?? defaultSettings().reviewQueue,
       reviewStorage: dbSettings.reviewStorage ?? defaultSettings().reviewStorage,
@@ -354,6 +369,236 @@ export class SettingsStore {
       return { ok: false, message: this.buildCredentialAccessError(resolution.state) ?? 'Azure DevOps PAT is missing. Open Settings.' };
     }
     return this.testOrgConnection(orgNameOverride?.trim() || organization.name, resolution.value);
+  }
+
+  /** Resolve the decrypted API key for a BYOK provider. */
+  getByokApiKey(providerId: string): string | null {
+    const token = this.byokApiKeys[providerId];
+    if (!token) return null;
+    return unprotectSecret(token);
+  }
+
+  /** Save or update a BYOK provider, storing its API key via OS-protected storage. */
+  saveByokProvider(provider: ByokProviderConfig, apiKey: string): SettingsSaveResult {
+    const byokProviders = this.database?.getByokProviders() ?? [];
+    const existingIndex = byokProviders.findIndex((p) => p.id === provider.id);
+    const isNew = existingIndex === -1;
+
+    if (!provider.label.trim()) {
+      return {
+        settings: this.getRendererSettings(),
+        status: 'partial',
+        message: 'Provider label is required.',
+        issues: [{
+          code: 'invalid-byok-provider',
+          scope: 'byokProvider',
+          entityId: provider.id,
+          message: 'A provider label is required.'
+        }]
+      };
+    }
+
+    if (isNew && !apiKey.trim()) {
+      return {
+        settings: this.getRendererSettings(),
+        status: 'partial',
+        message: 'API key is required for a new provider.',
+        issues: [{
+          code: 'api-key-required',
+          scope: 'byokProvider',
+          entityId: provider.id,
+          message: 'An API key is required for a new provider.'
+        }]
+      };
+    }
+
+    if (!safeStorage.isEncryptionAvailable() && apiKey.trim()) {
+      return {
+        settings: this.getRendererSettings(),
+        status: 'partial',
+        message: 'Protected storage is not available. Your operating system may not support encrypted secret storage.',
+        issues: [{
+          code: 'protected-storage-unavailable',
+          scope: 'byokProvider',
+          entityId: provider.id,
+          message: 'Unable to securely store the API key — protected storage is unavailable.'
+        }]
+      };
+    }
+
+    // Store API key (encrypt if new key provided, keep existing if blank)
+    if (apiKey.trim()) {
+      this.byokApiKeys[provider.id] = protectSecret(apiKey.trim());
+      // Clear cached models so the next fetch uses the new key
+      this.byokModelFetcher.clearCache(provider.id);
+    } else if (!isNew) {
+      // Keep existing key — no change
+    }
+
+    // Store provider metadata (no API key)
+    const storedProvider: Omit<ByokProviderConfig, 'hasStoredApiKey'> = {
+      id: provider.id,
+      label: provider.label.trim(),
+      type: provider.type,
+      baseUrl: provider.baseUrl.trim() || 'https://api.deepseek.com'
+    };
+
+    if (isNew) {
+      this.database?.saveByokProvider(storedProvider);
+    } else {
+      this.database?.updateByokProvider(storedProvider);
+    }
+
+    this.saveSettingsFile(this.databaseFolderPath);
+
+    return {
+      settings: this.getRendererSettings(),
+      status: 'success',
+      message: null,
+      issues: []
+    };
+  }
+
+  /** Delete a BYOK provider and its stored API key. */
+  deleteByokProvider(providerId: string): SettingsSaveResult {
+    delete this.byokApiKeys[providerId];
+    this.database?.deleteByokProvider(providerId);
+    this.saveSettingsFile(this.databaseFolderPath);
+
+    return {
+      settings: this.getRendererSettings(),
+      status: 'success',
+      message: null,
+      issues: []
+    };
+  }
+
+  /** Test a BYOK provider connection by calling its models endpoint. */
+  async testByokConnection(providerId: string, apiKey: string, baseUrlOverride?: string): Promise<{ ok: boolean; message: string; models?: string[] }> {
+    const byokProviders = this.database?.getByokProviders() ?? [];
+    const provider = byokProviders.find((p) => p.id === providerId);
+    const baseUrl = provider?.baseUrl || baseUrlOverride;
+
+    if (!baseUrl) {
+      return { ok: false, message: 'Provider not found.' };
+    }
+
+    const key = apiKey.trim() || this.getByokApiKey(providerId);
+    if (!key) {
+      return { ok: false, message: 'API key is required.' };
+    }
+
+    try {
+      const normalizedBaseUrl = baseUrl.replace(/\/+$/, '');
+      // DeepSeek uses OpenAI-compatible endpoints under /v1
+      const url = `${normalizedBaseUrl}/v1/models`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${key}`,
+          Accept: 'application/json'
+        },
+        signal: AbortSignal.timeout(15_000)
+      });
+
+      if (response.ok) {
+        const data = await response.json() as { data?: Array<{ id: string }> };
+        const models = (data.data ?? []).map((m) => m.id).filter(Boolean);
+        return {
+          ok: true,
+          message: models.length > 0
+            ? `Connected — ${models.length} model(s) found: ${models.join(', ')}`
+            : 'Connected but no models found.',
+          models
+        };
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return { ok: false, message: 'Authentication failed — check your API key.' };
+      }
+
+      return { ok: false, message: `Connection failed (HTTP ${response.status}).` };
+    } catch (err: unknown) {
+      console.warn('[Settings] BYOK provider connection test failed.', err);
+      if (err instanceof Error && err.name === 'TimeoutError') {
+        return { ok: false, message: 'Connection timed out — check the endpoint URL.' };
+      }
+      const detail = err instanceof Error ? err.message : String(err);
+      return { ok: false, message: `Unable to test the connection: ${detail}` };
+    }
+  }
+
+  /** Fetch models from all configured BYOK providers. */
+  async listByokProviderModels(): Promise<KnownModelDefinition[]> {
+    const providers = this.database?.getByokProviders() ?? [];
+    if (providers.length === 0) return [];
+
+    const results: KnownModelDefinition[] = [];
+    for (const provider of providers) {
+      const apiKey = this.getByokApiKey(provider.id);
+      if (!apiKey) continue;
+      try {
+        const models = await this.byokModelFetcher.fetchModels(provider.id, provider.baseUrl, apiKey, provider.label);
+        results.push(...models);
+      } catch (err) {
+        console.warn(`[Settings] Failed to fetch BYOK models for provider "${provider.id}":`, err);
+      }
+    }
+    return results;
+  }
+
+  /** Synchronously return cached BYOK models for the onListModels handler. */
+  listByokProviderModelsSync(): Array<{ id: string; name: string; multiplier: number }> {
+    const providers = this.database?.getByokProviders() ?? [];
+    if (providers.length === 0) return [];
+
+    const results: Array<{ id: string; name: string; multiplier: number }> = [];
+    for (const provider of providers) {
+      const cached = this.byokModelFetcher.getCachedModels(provider.id);
+      for (const model of cached) {
+        results.push({ id: model.id, name: model.name, multiplier: model.multiplier });
+      }
+    }
+    // If nothing cached yet, return fallback hardcoded models per provider
+    if (results.length === 0) {
+      for (const provider of providers) {
+        const fallback = this.byokModelFetcher.getFallbackModels(provider.id, provider.label);
+        for (const model of fallback) {
+          results.push({ id: model.id, name: model.name, multiplier: model.multiplier });
+        }
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Resolve the BYOK provider config for a given model ID.
+   * Self-contained — does NOT rely on KNOWN_MODELS (renderer-only state).
+   */
+  resolveByokProvider(modelId: string): { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined {
+    if (!modelId || modelId === 'Auto') return undefined;
+
+    const providers = this.database?.getByokProviders() ?? [];
+
+    for (const provider of providers) {
+      const cached = this.byokModelFetcher.getCachedModels(provider.id);
+      // Only resolve against providers whose model list has been fetched.
+      // If no models are cached, skip — guessing with hardcoded IDs could
+      // falsely match or silently route to the wrong provider.
+      if (cached.length === 0) continue;
+
+      const known = cached.map((m) => m.id);
+      if (known.includes(modelId)) {
+        const apiKey = this.getByokApiKey(provider.id);
+        if (!apiKey) continue;
+        return {
+          providerId: provider.id,
+          type: provider.type,
+          baseUrl: provider.baseUrl,
+          apiKey
+        };
+      }
+    }
+    return undefined;
   }
 
   saveSettings(settings: AppSettings): SettingsSaveResult {
@@ -426,7 +671,8 @@ export class SettingsStore {
       defaultModel: normalizeDefaultModelId(partial.defaultModel ?? current.defaultModel),
       defaultDiffViewMode: partial.defaultDiffViewMode ?? current.defaultDiffViewMode,
       myDisplayName: partial.myDisplayName !== undefined ? partial.myDisplayName : current.myDisplayName,
-      skillsSourcePath: partial.skillsSourcePath ?? current.skillsSourcePath
+      skillsSourcePath: partial.skillsSourcePath ?? current.skillsSourcePath,
+      byokProviders: partial.byokProviders ?? current.byokProviders
     };
     return this.saveSettings(merged);
   }
@@ -489,6 +735,7 @@ export class SettingsStore {
           apiVersion: ado.apiVersion ?? '7.1'
         },
         organizationTokens: rawOrganizationTokens,
+        byokApiKeys: parsed?.byokApiKeys ?? {},
         organizations: Array.isArray(parsed?.organizations)
           ? parsed.organizations.map((org) => ({ id: org.id, name: org.name, pat: '' }))
           : [],
@@ -538,6 +785,7 @@ export class SettingsStore {
         pat: protectSecret(legacyAdo.pat ?? '')
       },
       organizationTokens: protectSecretMap(this.organizationTokens),
+      byokApiKeys: protectSecretMap(this.byokApiKeys),
       activePrSourceId: this.fileActivePrSourceId,
       database: {
         folderPath: databaseFolderPath
@@ -546,6 +794,7 @@ export class SettingsStore {
     writeFileSync(this.settingsPath, JSON.stringify(file, null, 2), 'utf-8');
     this.ado = file.azureDevOps;
     this.organizationTokens = file.organizationTokens ?? {};
+    this.byokApiKeys = file.byokApiKeys ?? {};
     this.legacyPlaintextOrganizationIds.clear();
     this.legacyPlaintextAdoPat = false;
   }

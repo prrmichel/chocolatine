@@ -160,8 +160,8 @@
   min-width: 0;
   max-width: 100%;
   align-items: stretch;
-  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .changes-list {
@@ -322,8 +322,8 @@
 .changes-body {
   flex: 1 1 auto;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
 }
 
 .follow-up-h-splitter {
@@ -331,7 +331,6 @@
   cursor: row-resize;
   background: transparent;
   border-top: 1px solid var(--vscode-border);
-  flex: 0 0 auto;
 }
 
 .follow-up-h-splitter:hover {
@@ -339,53 +338,13 @@
 }
 
 .follow-up-panel {
-  height: var(--follow-up-panel-height, 450px);
-  flex: 0 0 auto;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--vscode-border);
+  min-height: 0;
   background: var(--vscode-surface);
 }
 
-.follow-up-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--vscode-border);
-  flex: 0 0 auto;
-}
-
-.follow-up-panel-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--vscode-text);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.follow-up-panel-close {
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: transparent;
-  color: var(--vscode-muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.follow-up-panel-close:hover {
-  color: var(--vscode-text);
-  background: rgba(255, 255, 255, 0.06);
-}
-
 .follow-up-panel-collapsed {
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -400,45 +359,6 @@
 .follow-up-panel-collapsed:hover {
   color: var(--vscode-text);
   background: rgba(255, 255, 255, 0.04);
-}
-
-.follow-up-panel-tabs-row {
-  display: flex;
-  gap: 2px;
-  flex: 1 1 auto;
-}
-
-.follow-up-panel-tab-btn {
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--vscode-muted);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 4px 10px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  border-radius: 4px 4px 0 0;
-  transition: color 0.12s, border-color 0.12s;
-}
-
-.follow-up-panel-tab-btn:hover {
-  color: var(--vscode-text);
-}
-
-.follow-up-panel-tab-btn-active {
-  color: var(--vscode-text);
-  border-bottom-color: var(--vscode-accent);
-  font-weight: 600;
-}
-
-.follow-up-panel-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .top-level-comments {
