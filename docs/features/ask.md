@@ -18,12 +18,13 @@ Click **Ask** in the main navigation tab bar.
 - **Rename** contexts.
 - **Delete** contexts.
 - **Switch** between contexts — each maintains its own message history and model selection.
+- **Keyboard shortcut** — `Ctrl+Tab` cycles forward through contexts; `Ctrl+Shift+Tab` cycles backward.
 
 ### Chat
 
-- **Send messages** with streaming output (answers appear incrementally).
+- **Send messages** with streaming output (answers appear incrementally). `Ctrl+Enter` sends the current message.
 - **Cancel** an in-flight response.
-- **Select the model** per context — change it at any time. BYOK models (configured in [AI Providers](../settings/ai-providers.md)) appear in the selector with a badge.
+- **Select the model** per context — change it at any time before sending a message. Once a message is sent, the model is locked (see [Model Lock](../concepts/byok.md#model-lock)). BYOK models (configured in [AI Providers](../settings/ai-providers.md)) appear in the selector with a badge.
 - **Resize** the input text area.
 - **Seed from other workflows** — Other parts of the app can pre-fill the Ask input with an initial message.
 
@@ -54,4 +55,5 @@ Click **Ask** in the main navigation tab bar.
 - [Follow-up Tab](pull-requests/follow-up-tab.md) — PR-specific chat (different from Ask).
 - [Prompt Library](prompt-library.md) — Save reusable prompts.
 - [Session Management](../concepts/session-management.md) — How Ask sessions persist.
+- [BYOK](../concepts/byok.md) — How the model lock and provider restrictions work.
 - [Supported Models](../reference/supported-models.md) — Available models.

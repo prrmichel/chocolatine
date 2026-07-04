@@ -127,12 +127,18 @@ export class ByokApiService {
 /** Combine multiple AbortSignals into one. */
 function anySignal(signals: AbortSignal[]): AbortSignal {
   const controller = new AbortController();
+  const onAbort = (reason: unknown) => {
+    controller.abort(reason);
+    for (const signal of signals) {
+      signal.removeEventListener('abort', onAbort);
+    }
+  };
   for (const signal of signals) {
     if (signal.aborted) {
       controller.abort(signal.reason);
       return controller.signal;
     }
-    signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true });
+    signal.addEventListener('abort', onAbort, { once: true });
   }
   return controller.signal;
 }

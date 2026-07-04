@@ -12,7 +12,7 @@ import {
   SettingsSaveResult
 } from '@shared/types/models';
 import type { KnownModelDefinition } from '@shared/constants/modelOptions';
-import { DeepSeekModelFetcher } from '@main/features/byok/DeepSeekModelFetcher';
+import { ByokModelFetcher } from '@main/features/byok/ByokModelFetcher';
 import { getFallbackFreeModelId, normalizeDefaultModelId } from '@shared/constants/modelOptions';
 import { DatabaseService } from '@main/core/persistence/databaseService';
 import { applyAdoSettingsPolicy } from '@main/core/persistence/adoSettingsPolicy';
@@ -174,7 +174,7 @@ export class SettingsStore {
   private databaseFolderPath: string | null;
   /** BYOK API keys by provider ID (encrypted on disk, decrypted in memory). */
   private byokApiKeys: Record<string, string>;
-  private byokModelFetcher = new DeepSeekModelFetcher();
+  private byokModelFetcher = new ByokModelFetcher();
   private database: DatabaseService | null = null;
 
   constructor() {
@@ -558,14 +558,13 @@ export class SettingsStore {
         results.push({ id: model.id, name: model.name, multiplier: model.multiplier });
       }
     }
-    // If nothing cached yet, return fallback hardcoded models
+    // If nothing cached yet, return fallback hardcoded models per provider
     if (results.length === 0) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      for (const _ of providers) {
-        results.push(
-          { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0 },
-          { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', multiplier: 0 }
-        );
+      for (const provider of providers) {
+        const fallback = this.byokModelFetcher.getFallbackModels(provider.id, provider.label);
+        for (const model of fallback) {
+          results.push({ id: model.id, name: model.name, multiplier: model.multiplier });
+        }
       }
     }
     return results;
@@ -578,13 +577,16 @@ export class SettingsStore {
   resolveByokProvider(modelId: string): { providerId: string; type: string; baseUrl: string; apiKey: string } | undefined {
     if (!modelId || modelId === 'Auto') return undefined;
 
-    const FALLBACK_IDS = ['deepseek-chat', 'deepseek-reasoner'];
     const providers = this.database?.getByokProviders() ?? [];
 
     for (const provider of providers) {
       const cached = this.byokModelFetcher.getCachedModels(provider.id);
-      const known = cached.length > 0 ? cached.map((m) => m.id) : FALLBACK_IDS;
+      // Only resolve against providers whose model list has been fetched.
+      // If no models are cached, skip — guessing with hardcoded IDs could
+      // falsely match or silently route to the wrong provider.
+      if (cached.length === 0) continue;
 
+      const known = cached.map((m) => m.id);
       if (known.includes(modelId)) {
         const apiKey = this.getByokApiKey(provider.id);
         if (!apiKey) continue;

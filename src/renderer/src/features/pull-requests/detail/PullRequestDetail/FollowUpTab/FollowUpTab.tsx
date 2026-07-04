@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { getFallbackFreeModelId, getModelDisplayName, isByokModel, normalizeSelectableModelId } from '@shared/constants/modelOptions';
+import { getFallbackFreeModelId, getModelDisplayName, normalizeSelectableModelId } from '@shared/constants/modelOptions';
 import { copyToClipboard } from '@renderer/utils/clipboard';
 import { AskMessage, FollowUpContext, FollowUpContextSummary, PullRequestSummary, ReviewJob } from '@shared/types/models';
 import { api } from '@renderer/services/api';
 import ConfirmDialog from '@renderer/features/shared/ConfirmDialog/ConfirmDialog';
 import ModelSelect from '@renderer/features/shared/ModelSelect/ModelSelect';
 import { useResizeDrag } from '@renderer/hooks/useResizeDrag';
+import { useByokModelLock } from '@renderer/hooks/useByokModelLock';
 import styles from './FollowUpTab.module.css';
 
 function formatRunDate(dateStr: string | undefined | null): string {
@@ -74,16 +75,12 @@ export default function FollowUpTab({
   const autoSelectRef = useRef(false);
 
   // ── BYOK lock logic ────────────────────────────────────────────────
-  // A follow-up context is always created from a review that already ran.
-  // The model is locked immediately based on the review's model.
-  const isByokReview = isByokModel(activeContext?.modelName ?? '');
-  const isFullyLocked = isByokReview;
-  const isPartiallyLocked = activeContext !== null && !isByokReview;
-
-  // When partially locked (non-BYOK review), exclude BYOK options entirely.
-  const filteredModelOptions = isPartiallyLocked
-    ? modelOptions.filter((opt) => !isByokModel(opt.id))
-    : modelOptions;
+  const { filteredModelOptions, isFullyLocked, disabled, disabledMessage } = useByokModelLock({
+    contextModelName: activeContext?.modelName ?? '',
+    hasMessages: activeContext !== null,
+    modelOptions,
+    lockMessage: 'This follow-up uses a BYOK model. The model cannot be changed.'
+  });
 
   const startResizeInput = useResizeDrag({
     direction: 'vertical',
@@ -418,8 +415,8 @@ export default function FollowUpTab({
             <ModelSelect value={modelName} options={filteredModelOptions}
               onChange={(value) => setModelName(normalizeSelectableModelId(value))}
               className={`model-select ${styles.followupModelSelect}`} keyPrefix="followup"
-              disabled={isFullyLocked}
-              disabledMessage={isFullyLocked ? 'This follow-up uses a BYOK model. The model cannot be changed.' : undefined} />
+              disabled={disabled}
+              disabledMessage={disabledMessage} />
           </div>
           <div className={`${styles.followupInputRow} ${styles.followupInputMain}`}>
             <textarea ref={inputRef} className={styles.followupTextarea}
@@ -565,8 +562,8 @@ export default function FollowUpTab({
                 onChange={(value) => setModelName(normalizeSelectableModelId(value))}
                 className={`model-select ${styles.followupModelSelect}`}
                 keyPrefix="followup"
-                disabled={isFullyLocked}
-                disabledMessage={isFullyLocked ? 'This follow-up uses a BYOK model. The model cannot be changed.' : undefined}
+                disabled={disabled}
+                disabledMessage={disabledMessage}
               />
             </div>
             <div className={`${styles.followupInputRow} ${styles.followupInputMain}`}>

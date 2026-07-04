@@ -10,6 +10,9 @@ Chocolatine provides keyboard shortcuts for frequently used actions. These work 
 
 | Shortcut | Action | Context |
 |----------|--------|---------|
+| `Ctrl+Enter` | Send message | Ask tab textarea |
+| `Ctrl+Tab` | Switch to next chat context | Ask tab |
+| `Ctrl+Shift+Tab` | Switch to previous chat context | Ask tab |
 | `Ctrl+S` | Save the current prompt | Prompt Library editor |
 
 ## Related

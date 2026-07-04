@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AskContext, AskMessage } from '@shared/types/models';
-import { isByokModel, normalizeSelectableModelId } from '@shared/constants/modelOptions';
+import { normalizeSelectableModelId } from '@shared/constants/modelOptions';
 import { api } from '@renderer/services/api';
 import { useSpeechRecognition } from '@renderer/features/ask/hooks/useSpeechRecognition';
 import { useResizeDrag } from '@renderer/hooks/useResizeDrag';
+import { useByokModelLock } from '@renderer/hooks/useByokModelLock';
 import ModelSelect from '@renderer/features/shared/ModelSelect/ModelSelect';
 import ContextBar from '../ContextBar/ContextBar';
 import MessageList from '../MessageList/MessageList';
@@ -46,20 +47,12 @@ export default function AskTab({
   const activeContext = contexts.find((c) => c.id === activeContextId) ?? null;
 
   // ── BYOK lock logic ────────────────────────────────────────────────
-  // A context is "consumed" once it has at least one message.
-  // - No messages       → free (any model, including BYOK)
-  // - Messages + BYOK   → fully locked (cannot change at all)
-  // - Messages + non-BYOK → partially locked (can switch between non-BYOK only)
-  const hasMessages = (activeContext?.messages.length ?? 0) > 0;
-  const contextModelName = activeContext?.modelName ?? modelName;
-  const isContextByok = isByokModel(contextModelName);
-  const isFullyLocked = hasMessages && isContextByok;
-  const isPartiallyLocked = hasMessages && !isContextByok;
-
-  // When partially locked, exclude BYOK options entirely.
-  const filteredModelOptions = isPartiallyLocked
-    ? modelOptions.filter((opt) => !isByokModel(opt.id))
-    : modelOptions;
+  const { filteredModelOptions, isFullyLocked, disabled, disabledMessage } = useByokModelLock({
+    contextModelName: activeContext?.modelName ?? modelName,
+    hasMessages: (activeContext?.messages.length ?? 0) > 0,
+    modelOptions,
+    lockMessage: LABELS.modelLockedByok
+  });
 
   useEffect(() => {
     modelNameRef.current = modelName;
@@ -138,9 +131,10 @@ export default function AskTab({
     // Sync model selector with the active context's model so the BYOK lock
     // follows context switches (context A uses BYOK → selector locks;
     // switch to context B with non-BYOK → selector unlocks).
-    if (activeContext) {
-      setModelName(normalizeSelectableModelId(activeContext.modelName));
-    }
+    // Use activeContext?.modelName (string) instead of activeContext (object)
+    // in deps — activeContext is derived from contexts.find() and changes
+    // reference on every render, which would reset user's model selection.
+    setModelName(normalizeSelectableModelId(activeContext?.modelName ?? null));
     api.getAskMessages(activeContextId).then((loadedMessages) => {
       setMessages(loadedMessages);
       // Sync contexts so activeContext.messages reflects persisted state for the BYOK lock.
@@ -150,7 +144,7 @@ export default function AskTab({
         ));
       }
     }).catch(() => {});
-  }, [activeContextId, activeContext]);
+  }, [activeContextId, activeContext?.modelName]);
 
   useEffect(() => {
     const unsubDelta = api.onAskDelta((payload) => {
@@ -228,6 +222,24 @@ export default function AskTab({
     if (event.key === 'Enter' && event.ctrlKey) { event.preventDefault(); void sendMessage(); }
   };
 
+  // Ctrl+Tab / Ctrl+Shift+Tab: cycle through chat contexts (global within tab)
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || !event.ctrlKey) return;
+      const currentIndex = contexts.findIndex((c) => c.id === activeContextId);
+      if (currentIndex === -1) return;
+      event.preventDefault();
+      const direction = event.shiftKey ? -1 : 1;
+      const nextIndex = (currentIndex + direction + contexts.length) % contexts.length;
+      if (contexts[nextIndex]) {
+        setIsStreaming(false);
+        setActiveContextId(contexts[nextIndex].id);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [contexts, activeContextId]);
+
   const handleTranscript = (text: string) => {
     setInputText((prev) => {
       const separator = prev.trim().length > 0 ? ' ' : '';
@@ -284,8 +296,8 @@ export default function AskTab({
             className={`model-select ${styles.askModelSelect}`}
             unavailableMessage={modelCatalogUnavailableMessage ?? LABELS.modelCatalogUnavailable}
             keyPrefix="ask-tab"
-            disabled={isFullyLocked}
-            disabledMessage={isFullyLocked ? LABELS.modelLockedByok : undefined}
+            disabled={disabled}
+            disabledMessage={disabledMessage}
           />
         </div>
         <div className={`${styles.askInputRow} ${styles.askInputMain}`}>

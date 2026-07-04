@@ -1,6 +1,6 @@
 import type { KnownModelDefinition } from '@shared/constants/modelOptions';
 
-const DEEPSEEK_HARDCODED_MODELS: KnownModelDefinition[] = [
+const FALLBACK_MODELS: KnownModelDefinition[] = [
   { id: 'deepseek-chat', name: 'DeepSeek Chat', multiplier: 0, aliases: ['deepseek-chat'], providerId: null, providerLabel: null },
   { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', multiplier: 0, aliases: ['deepseek-reasoner'], providerId: null, providerLabel: null }
 ];
@@ -13,13 +13,13 @@ interface CacheEntry {
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 /**
- * Fetches available models from a DeepSeek-compatible API endpoint.
+ * Fetches available models from an OpenAI-compatible API endpoint.
  * Caches results for 1 hour and falls back to a hardcoded list on failure.
  *
  * The `providerId` is stamped on every returned model so consumers
  * can tell which provider each model belongs to.
  */
-export class DeepSeekModelFetcher {
+export class ByokModelFetcher {
   private cache = new Map<string, CacheEntry>();
 
   /** Fetch models for a given provider. Returns cached results when fresh. */
@@ -34,11 +34,19 @@ export class DeepSeekModelFetcher {
       this.cache.set(providerId, { models, fetchedAt: Date.now() });
       return models;
     } catch (err) {
-      console.warn(`[DeepSeekModelFetcher] API fetch failed for provider "${providerId}", using fallback.`, err);
-      const fallback = DEEPSEEK_HARDCODED_MODELS.map((m) => ({ ...m, providerId, providerLabel: providerLabel ?? null }));
+      console.warn(`[ByokModelFetcher] API fetch failed for provider "${providerId}", using fallback.`, err);
+      const fallback = FALLBACK_MODELS.map((m) => ({ ...m, providerId, providerLabel: providerLabel ?? null }));
       this.cache.set(providerId, { models: fallback, fetchedAt: Date.now() });
       return fallback;
     }
+  }
+
+  /**
+   * Return fallback models stamped with a given provider's identity.
+   * Used synchronously when no models are cached yet (e.g. onListModels handler).
+   */
+  getFallbackModels(providerId: string, providerLabel?: string): KnownModelDefinition[] {
+    return FALLBACK_MODELS.map((m) => ({ ...m, providerId, providerLabel: providerLabel ?? null }));
   }
 
   /** Clear cached models for a specific provider (e.g. when API key changes). */
