@@ -75,7 +75,7 @@ export default function FollowUpTab({
   const autoSelectRef = useRef(false);
 
   // ── BYOK lock logic ────────────────────────────────────────────────
-  const { filteredModelOptions, isFullyLocked, disabled, disabledMessage } = useByokModelLock({
+  const { filteredModelOptions, disabled, disabledMessage } = useByokModelLock({
     contextModelName: activeContext?.modelName ?? '',
     hasMessages: activeContext !== null,
     modelOptions,

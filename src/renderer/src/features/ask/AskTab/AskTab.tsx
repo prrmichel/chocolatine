@@ -47,7 +47,7 @@ export default function AskTab({
   const activeContext = contexts.find((c) => c.id === activeContextId) ?? null;
 
   // ── BYOK lock logic ────────────────────────────────────────────────
-  const { filteredModelOptions, isFullyLocked, disabled, disabledMessage } = useByokModelLock({
+  const { filteredModelOptions, disabled, disabledMessage } = useByokModelLock({
     contextModelName: activeContext?.modelName ?? modelName,
     hasMessages: (activeContext?.messages.length ?? 0) > 0,
     modelOptions,
