@@ -165,7 +165,7 @@ test('multiple save/delete cycles maintain integrity', () => {
   assert.equal(a.label, 'A renamed');
 });
 
-test('saveByokProvider validates: rejects empty label', async () => {
+test('saveByokProvider stores empty label at DB layer (validation is at SettingsStore level)', async () => {
   // This tests the SettingsStore.saveByokProvider method directly
   // by importing from the source module.
   // Because SettingsStore requires Electron's `app` and `safeStorage`,

@@ -47,6 +47,10 @@ function resolveNativeCopilotCliPath(): string {
 /**
  * Build `CopilotClientOptions` that isolate the Copilot CLI's session
  * storage away from the user's home directory.
+ *
+ * The SDK resolves authentication from the default `~/.copilot` when
+ * `baseDirectory` is omitted, so we only isolate session state via
+ * `workingDirectory` — the user's existing Copilot CLI login is reused.
  */
 export function buildCopilotClientOptions(): CopilotClientOptions {
   const copilotHome = getCopilotHome();

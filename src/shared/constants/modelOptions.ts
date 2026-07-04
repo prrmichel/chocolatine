@@ -183,8 +183,14 @@ export const getModelDisplayName = (value: string | null | undefined): string =>
 /**
  * Returns true when the given model ID resolves to a BYOK model
  * (a model with a non-null {@link KnownModelDefinition.providerId}).
+ *
+ * Accepts an optional model map for pure, testable usage.
+ * When omitted, falls back to the module-level {@link knownModelById}.
  */
-export const isByokModel = (modelId: string): boolean => {
+export const isByokModel = (
+  modelId: string,
+  knownById: Map<string, KnownModelDefinition> = knownModelById
+): boolean => {
   if (!modelId || modelId === AUTO_MODEL_ID) {
     return false;
   }
@@ -192,7 +198,7 @@ export const isByokModel = (modelId: string): boolean => {
   if (!normalized) {
     return false;
   }
-  const model = knownModelById.get(normalized);
+  const model = knownById.get(normalized);
   return model?.providerId != null;
 };
 
@@ -217,10 +223,14 @@ export const formatModelLabel = (id: string, multiplier: number | null, nameWidt
   return `${paddedName} ${multiplierText}`;
 };
 
+/** Format a model name with an optional BYOK provider badge. */
+export const formatProviderModelLabel = (name: string, providerLabel?: string | null): string =>
+  providerLabel ? `${name} (${providerLabel})` : name;
+
 export const buildModelOptions = (): ModelSelectOption[] => {
   return modelOptions.map((model) => ({
     id: model.id,
-    label: model.providerLabel ? `${model.name} (${model.providerLabel})` : model.name
+    label: formatProviderModelLabel(model.name, model.providerLabel)
   }));
 };
 

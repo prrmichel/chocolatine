@@ -264,7 +264,7 @@ export default function SettingsModal({
               className={`${styles.tab}${activeTab === 'byok' ? ` ${styles.tabActive}` : ''}`}
               onClick={() => setActiveTab('byok')}
             >
-              <i className="fa-solid fa-robot" /> {LABELS.tabByok}
+              <i className="fa-solid fa-server" /> {LABELS.tabByok}
             </button>
             <button
               className={`${styles.tab}${activeTab === 'preferences' ? ` ${styles.tabActive}` : ''}`}

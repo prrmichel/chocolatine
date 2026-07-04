@@ -16,7 +16,7 @@ interface UseByokModelLockParams {
 
 interface UseByokModelLockResult {
   /** Model options filtered by the current lock state. */
-  filteredModelOptions: ReadonlyArray<{ id: string; label: string }>;
+  filteredModelOptions: { id: string; label: string }[];
   /** Whether the selector is fully locked — disabled with a tooltip. */
   isFullyLocked: boolean;
   /** Whether the context is partially locked — BYOK options are hidden. */
@@ -49,8 +49,8 @@ export function useByokModelLock({
     const isPartiallyLocked = hasMessages && !isByok;
 
     const filteredModelOptions = isPartiallyLocked
-      ? modelOptions.filter((opt) => !isByokModel(opt.id))
-      : modelOptions;
+      ? [...modelOptions.filter((opt) => !isByokModel(opt.id))]
+      : [...modelOptions];
 
     return {
       filteredModelOptions,
