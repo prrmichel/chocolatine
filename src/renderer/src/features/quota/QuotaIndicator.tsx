@@ -133,28 +133,28 @@ export default function QuotaIndicator() {
     switch (state.status) {
       case 'loading':
         return (
-          <div className={`${styles.bar} ${styles.loading}`} title="Loading quota…">
+          <div className={`${styles.bar} ${styles.loading}`}>
             <span className={styles.label}>…</span>
           </div>
         );
 
       case 'error':
         return (
-          <div className={`${styles.bar} ${styles.error}`} title={state.message}>
+          <div className={`${styles.bar} ${styles.error}`}>
             <span className={styles.label}>Err</span>
           </div>
         );
 
       case 'not-available':
         return (
-          <div className={`${styles.bar} ${styles.na}`} title="No premium quota data available">
+          <div className={`${styles.bar} ${styles.na}`}>
             <span className={styles.label}>N/A</span>
           </div>
         );
 
       case 'unlimited':
         return (
-          <div className={`${styles.bar} ${styles.green}`} title="Unlimited entitlement">
+          <div className={`${styles.bar} ${styles.green}`}>
             <div className={styles.fill} style={{ width: '100%' }} />
             <span className={styles.label}>∞</span>
           </div>
@@ -171,7 +171,6 @@ export default function QuotaIndicator() {
         return (
           <div
             className={`${styles.bar} ${fillClass} ${state.status === 'refreshing' ? styles.refreshing : ''}`}
-            title={`${formatNumber(usedRequests)} / ${formatNumber(entitlementRequests)} (${consumedPct}% consumed)`}
           >
             <div className={styles.fill} style={{ width: `${consumedPct}%` }} />
             <span className={styles.label}>
