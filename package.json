@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
-    "@github/copilot-sdk": "^1.0.5",
+    "@github/copilot-sdk": "^1.0.6",
     "better-sqlite3": "^12.10.1",
     "diff": "^8.0.3",
     "highlight.js": "^11.11.1",

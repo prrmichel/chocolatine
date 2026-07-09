@@ -6,6 +6,8 @@ import { registerRulesIpc } from '@main/ipc/rules';
 import { registerSettingsIpc } from '@main/ipc/settings';
 import { registerSkillsIpc } from '@main/ipc/skills';
 import { registerUiPreferencesIpc } from '@main/ipc/uiPreferences';
+import { ipcMain } from 'electron';
+import { IpcChannels } from '@shared/constants/ipcChannels';
 import { MainIpcServices, type RegisterIpcArgs } from '@main/ipc/types';
 
 export const registerIpc = (...args: RegisterIpcArgs) => {
@@ -19,4 +21,11 @@ export const registerIpc = (...args: RegisterIpcArgs) => {
   registerFollowUpIpc(services);
   registerUiPreferencesIpc(services);
   registerSkillsIpc(services);
+
+  ipcMain.handle(IpcChannels.COPILOT_GET_QUOTA, async () => {
+    if (!services.copilotSessionManager) {
+      return {};
+    }
+    return services.copilotSessionManager.getQuota();
+  });
 };

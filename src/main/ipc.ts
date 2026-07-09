@@ -195,6 +195,13 @@ export const registerIpc = (
     return models;
   });
 
+  ipcMain.handle(IpcChannels.COPILOT_GET_QUOTA, async () => {
+    if (!copilotSessionManager) {
+      return {};
+    }
+    return copilotSessionManager.getQuota();
+  });
+
   // Skills Library
   ipcMain.handle(IpcChannels.SKILLS_GET_ALL, async (_event, scope?: string, projectKey?: string) =>
     skillsService?.getAll(scope as any, projectKey) ?? []

@@ -1,6 +1,7 @@
 ﻿import { askApi } from './ask';
 import { followUpApi } from './followUp';
 import { pullRequestsApi } from './pullRequests';
+import { quotaApi } from './quota';
 import { reviewsApi } from './reviews';
 import { rulesApi } from './rules';
 import { settingsApi } from './settings';
@@ -17,5 +18,6 @@ export const api = {
   ...askApi,
   ...followUpApi,
   ...skillsApi,
-  ...uiPreferencesApi
+  ...uiPreferencesApi,
+  ...quotaApi
 };

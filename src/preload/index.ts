@@ -2,6 +2,7 @@
 import { askApi } from '@preload/features/ask';
 import { followUpApi } from '@preload/features/followUp';
 import { pullRequestsApi } from '@preload/features/pullRequests';
+import { quotaApi } from '@preload/features/quota';
 import { reviewsApi } from '@preload/features/reviews';
 import { rulesApi } from '@preload/features/rules';
 import { settingsApi } from '@preload/features/settings';
@@ -16,7 +17,8 @@ const api = {
   ...askApi,
   ...followUpApi,
   ...skillsApi,
-  ...uiPreferencesApi
+  ...uiPreferencesApi,
+  ...quotaApi
 };
 
 try {

@@ -1,0 +1,239 @@
+.container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trigger {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+}
+
+.bar {
+  position: relative;
+  width: 150px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--vscode-surface-alt, #e0e0e0);
+  border: 1px solid var(--vscode-border, #ccc);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 5px 0 0 5px;
+  transition: width 0.3s ease;
+}
+
+.label {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  padding: 0 4px;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.7);
+}
+
+/* Color states */
+.green .fill {
+  background: #4caf50;
+}
+
+.yellow .fill {
+  background: #ff9800;
+}
+
+.red .fill {
+  background: #f44336;
+}
+
+/* Special states */
+.loading {
+  opacity: 0.6;
+}
+
+.refreshing {
+  opacity: 0.7;
+}
+
+.error {
+  border-color: #f44336;
+}
+
+.error .label {
+  color: #f44336;
+  font-size: 9px;
+}
+
+.na {
+  opacity: 0.4;
+}
+
+/* Refresh button — overlaid on the right side of the bar, hidden until hover */
+.refreshBtn {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 0 5px 5px 0;
+  background: rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vscode-text, #333);
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+
+.container:hover .refreshBtn {
+  opacity: 1;
+}
+
+.refreshBtn:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.spinning {
+  opacity: 1 !important;
+}
+
+.spinning i {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 100;
+  background: var(--vscode-surface, #fff);
+  border: 1px solid var(--vscode-border, #ccc);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 11px;
+  min-width: 220px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.tooltipTitle {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--vscode-text, #333);
+}
+
+.tooltipSubtitle {
+  font-size: 10px;
+  color: var(--vscode-text-muted, #888);
+  text-transform: capitalize;
+}
+
+.tooltipSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltipUsage {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.tooltipUsageValue {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--vscode-text, #333);
+}
+
+.tooltipUsageLabel {
+  font-size: 10px;
+  color: var(--vscode-text-muted, #888);
+}
+
+.tooltipBar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--vscode-surface-alt, #e0e0e0);
+  overflow: hidden;
+}
+
+.tooltipBarFill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--vscode-accent, #4caf50);
+  transition: width 0.3s ease;
+}
+
+.tooltipBarLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--vscode-text-muted, #888);
+}
+
+.tooltipDivider {
+  height: 1px;
+  background: var(--vscode-border, #e0e0e0);
+  margin: 2px 0;
+}
+
+.tooltipDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1px 0;
+  color: var(--vscode-text, #333);
+  font-size: 11px;
+}
+
+.tooltipRow span:first-child {
+  color: var(--vscode-text-muted, #888);
+}
+
+.tooltipFooter {
+  font-size: 10px;
+  color: var(--vscode-text-muted, #888);
+  font-style: italic;
+}

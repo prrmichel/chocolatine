@@ -414,6 +414,21 @@ export class CopilotSessionManager {
   }
 
   /**
+   * Fetch Copilot subscription quota from the SDK runtime.
+   * Returns quota snapshots keyed by type (chat, completions, premium_interactions).
+   */
+  async getQuota(): Promise<Record<string, unknown>> {
+    try {
+      const client = await this.getClient();
+      const result = await client.rpc.account.getQuota({});
+      return result as unknown as Record<string, unknown>;
+    } catch (err) {
+      console.warn('[CopilotSession] getQuota() failed:', err instanceof Error ? err.message : String(err));
+      return {};
+    }
+  }
+
+  /**
    * Send a message to an existing or new session identified by `key`.
    * The session is created/resumed lazily on first use.
    *
