@@ -29,6 +29,7 @@ Current public posture: Windows-only, Azure DevOps-only, source-first, and self-
 - [Prompt Library](features/prompt-library.md) — Create and manage reusable prompt templates.
 - [Rules Library](features/rules-library.md) — Define per-language review rules auto-injected into prompts.
 - [Ask](features/ask.md) — General-purpose Copilot chat, independent of any PR.
+- [Quota Indicator](features/quota-indicator.md) — Monitor Copilot usage quota in the app header.
 - [Task Queue](features/task-queue.md) — Monitor and control running/queued review jobs.
 - [Task Results](features/task-results.md) — Inspect raw model outputs for completed jobs.
 
