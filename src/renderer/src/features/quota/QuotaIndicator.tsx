@@ -165,7 +165,7 @@ export function QuotaIndicator() {
       case 'loading':
         return (
           <div className={`${styles.bar} ${styles.loading}`}>
-            <span className={styles.label}>â€¦</span>
+            <span className={styles.label}>...</span>
             {renderRefreshBtn()}
           </div>
         );
@@ -190,7 +190,7 @@ export function QuotaIndicator() {
         return (
           <div className={`${styles.bar} ${styles.green}`}>
             <div className={styles.fill} style={{ width: '100%' }} />
-            <span className={styles.label}>âˆž</span>
+            <span className={styles.label}>∞</span>
             {renderRefreshBtn()}
           </div>
         );
