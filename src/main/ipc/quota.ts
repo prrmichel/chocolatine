@@ -5,7 +5,7 @@ import type { MainIpcServices } from '@main/ipc/types';
 export function registerQuotaIpc({ copilotSessionManager }: MainIpcServices) {
   ipcMain.handle(IpcChannels.COPILOT_GET_QUOTA, async () => {
     if (!copilotSessionManager) {
-      return {};
+      return { quotaSnapshots: {} };
     }
     return copilotSessionManager.getQuota();
   });

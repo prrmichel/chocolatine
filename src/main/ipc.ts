@@ -197,7 +197,7 @@ export const registerIpc = (
 
   ipcMain.handle(IpcChannels.COPILOT_GET_QUOTA, async () => {
     if (!copilotSessionManager) {
-      return {};
+      return { quotaSnapshots: {} };
     }
     return copilotSessionManager.getQuota();
   });

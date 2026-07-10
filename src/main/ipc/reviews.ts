@@ -92,11 +92,4 @@ export function registerReviewsIpc({ reviewQueueService, reviewStorageService, f
     }
     return result;
   });
-
-  ipcMain.handle(IpcChannels.COPILOT_GET_QUOTA, async () => {
-    if (!copilotSessionManager) {
-      return {};
-    }
-    return copilotSessionManager.getQuota();
-  });
 }

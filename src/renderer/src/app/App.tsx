@@ -22,7 +22,7 @@ import SettingsModal from '@renderer/features/settings/SettingsModal/SettingsMod
 import ReviewOptionsModal from '@renderer/features/shared/ReviewOptionsModal';
 import AskTab from '@renderer/features/ask/AskTab/AskTab';
 import SkillsTab from '@renderer/features/skills/SkillsTab/SkillsTab';
-import QuotaIndicator from '@renderer/features/quota/QuotaIndicator';
+import { QuotaIndicator } from '@renderer/features/quota/QuotaIndicator';
 import { LABELS } from './labels';
 
 const buildReviewPrompt = (

@@ -5,7 +5,7 @@ import { DatabaseService } from '@main/core/persistence/databaseService';
 import { buildCopilotClientOptions } from '@main/utils/copilotClientOptions';
 import { AUTO_MODEL_ID, normalizeSelectableModelId, toSdkModel } from '@shared/constants/modelOptions';
 import { COPILOT_TIMEOUT_MS } from '@shared/constants/timeouts';
-import type { ModelInfo, ReviewSessionOptions } from '@shared/types/models';
+import type { CopilotQuotaData, ModelInfo, ReviewSessionOptions } from '@shared/types/models';
 
 const COPILOT_CLIENT_NAME = 'Chocolatine';
 
@@ -417,14 +417,18 @@ export class CopilotSessionManager {
    * Fetch Copilot subscription quota from the SDK runtime.
    * Returns quota snapshots keyed by type (chat, completions, premium_interactions).
    */
-  async getQuota(): Promise<Record<string, unknown>> {
+  async getQuota(): Promise<CopilotQuotaData> {
     try {
       const client = await this.getClient();
       const result = await client.rpc.account.getQuota({});
-      return result as unknown as Record<string, unknown>;
+      // Validate the RPC result shape before casting
+      if (result && typeof result === 'object' && 'quotaSnapshots' in result) {
+        return result as CopilotQuotaData;
+      }
+      return { quotaSnapshots: {} };
     } catch (err) {
       console.warn('[CopilotSession] getQuota() failed:', err instanceof Error ? err.message : String(err));
-      return {};
+      return { quotaSnapshots: {} };
     }
   }
 

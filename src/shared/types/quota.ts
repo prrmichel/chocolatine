@@ -4,7 +4,6 @@ export type CopilotQuotaSnapshot = {
   readonly entitlementRequests: number;
   readonly usedRequests: number;
   readonly usageAllowedWithExhaustedQuota: boolean;
-  readonly remainingPercentage: number;
   readonly overage: number;
   readonly overageAllowedWithExhaustedQuota: boolean;
   readonly resetDate?: string;

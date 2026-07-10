@@ -6,6 +6,9 @@ import styles from './QuotaIndicator.module.css';
 const QUOTA_TYPE = 'premium_interactions';
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
+const MIN_OVERAGE_WIDTH_PX = 12;
+const MAX_OVERAGE_WIDTH_PX = 120;
+
 type QuotaState =
   | { readonly status: 'loading' }
   | { readonly status: 'refreshing'; readonly snapshot: CopilotQuotaSnapshot }
@@ -27,19 +30,37 @@ function consumedColorClass(consumedPct: number): string {
   return styles.green;
 }
 
-export default function QuotaIndicator() {
+/** Computes the clamped pixel width for the overage segment. Returns 0 when no overage. */
+function computeOverageWidth(overage: number, entitlementRequests: number, hasOverage: boolean): number {
+  if (!hasOverage) return 0;
+  const raw = entitlementRequests > 0
+    ? Math.round((overage / entitlementRequests) * 150)
+    : 0;
+  return Math.max(MIN_OVERAGE_WIDTH_PX, Math.min(MAX_OVERAGE_WIDTH_PX, raw));
+}
+
+export function QuotaIndicator() {
   const [state, setState] = useState<QuotaState>({ status: 'loading' });
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const snapshotRef = useRef<CopilotQuotaSnapshot | null>(null);
   const lastRefreshedRef = useRef<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
 
-  const fetchQuota = useCallback(async (isRefresh = false) => {
-    // On manual refresh, keep showing the current snapshot
-    if (isRefresh && (state.status === 'loaded' || state.status === 'refreshing')) {
-      const prev = state.status === 'loaded' ? state.snapshot : state.snapshot;
-      setState({ status: 'refreshing', snapshot: prev });
+  // Keep snapshotRef in sync with state so fetchQuota can read it without a dep
+  useEffect(() => {
+    if (state.status === 'loaded' || state.status === 'refreshing') {
+      snapshotRef.current = state.snapshot;
+    } else {
+      snapshotRef.current = null;
+    }
+  }, [state]);
+
+  const fetchQuotaRef = useRef<(isRefresh?: boolean) => Promise<void>>(async () => {});
+  fetchQuotaRef.current = async (isRefresh = false) => {
+    if (isRefresh && snapshotRef.current !== null) {
+      setState({ status: 'refreshing', snapshot: snapshotRef.current });
     } else if (!isRefresh) {
       setState({ status: 'loading' });
     }
@@ -48,7 +69,7 @@ export default function QuotaIndicator() {
       const data = await api.getCopilotQuota();
       if (!mountedRef.current) return;
 
-      const snapshot = data.quotaSnapshots[QUOTA_TYPE];
+      const snapshot = data.quotaSnapshots?.[QUOTA_TYPE];
       if (!snapshot) {
         setState({ status: 'not-available' });
         lastRefreshedRef.current = new Date();
@@ -61,7 +82,7 @@ export default function QuotaIndicator() {
         return;
       }
 
-      setState({ status: 'loaded', snapshot });
+      setState({status: 'loaded', snapshot: snapshot});
       lastRefreshedRef.current = new Date();
     } catch (err) {
       if (!mountedRef.current) return;
@@ -70,14 +91,14 @@ export default function QuotaIndicator() {
         message: err instanceof Error ? err.message : String(err)
       });
     }
-  }, [state.status]);
+  };
 
   // Initial fetch + polling (runs once on mount)
   useEffect(() => {
     mountedRef.current = true;
-    fetchQuota();
+    fetchQuotaRef.current();
 
-    intervalRef.current = setInterval(() => fetchQuota(), REFRESH_INTERVAL_MS);
+    intervalRef.current = setInterval(() => fetchQuotaRef.current(), REFRESH_INTERVAL_MS);
 
     return () => {
       mountedRef.current = false;
@@ -86,13 +107,12 @@ export default function QuotaIndicator() {
         intervalRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleRefresh = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    fetchQuota(true);
-  }, [fetchQuota]);
+    fetchQuotaRef.current(true);
+  }, []);
 
   const handleBarClick = useCallback(() => {
     setTooltipOpen((prev) => !prev);
@@ -127,6 +147,17 @@ export default function QuotaIndicator() {
 
   const isLoading = state.status === 'loading' || state.status === 'refreshing';
 
+  const renderRefreshBtn = () => (
+    <button
+      className={`${styles.refreshBtn} ${isLoading ? styles.spinning : ''}`}
+      onClick={handleRefresh}
+      aria-label="Refresh quota"
+      title="Refresh quota"
+    >
+      <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+    </button>
+  );
+
   const renderBar = () => {
     const snapshot = getSnapshot();
 
@@ -134,7 +165,8 @@ export default function QuotaIndicator() {
       case 'loading':
         return (
           <div className={`${styles.bar} ${styles.loading}`}>
-            <span className={styles.label}>…</span>
+            <span className={styles.label}>â€¦</span>
+            {renderRefreshBtn()}
           </div>
         );
 
@@ -142,6 +174,7 @@ export default function QuotaIndicator() {
         return (
           <div className={`${styles.bar} ${styles.error}`}>
             <span className={styles.label}>Err</span>
+            {renderRefreshBtn()}
           </div>
         );
 
@@ -149,6 +182,7 @@ export default function QuotaIndicator() {
         return (
           <div className={`${styles.bar} ${styles.na}`}>
             <span className={styles.label}>N/A</span>
+            {renderRefreshBtn()}
           </div>
         );
 
@@ -156,26 +190,45 @@ export default function QuotaIndicator() {
         return (
           <div className={`${styles.bar} ${styles.green}`}>
             <div className={styles.fill} style={{ width: '100%' }} />
-            <span className={styles.label}>∞</span>
+            <span className={styles.label}>âˆž</span>
+            {renderRefreshBtn()}
           </div>
         );
 
       case 'refreshing':
       case 'loaded': {
         if (!snapshot) return null;
-        const { usedRequests, entitlementRequests } = snapshot;
-        const consumedPct = entitlementRequests > 0
+        const { usedRequests, entitlementRequests, overage } = snapshot;
+        const hasOverage = overage > 0;
+        const fillPct = entitlementRequests > 0
           ? Math.min(100, Math.round((usedRequests / entitlementRequests) * 100))
           : 0;
-        const fillClass = consumedColorClass(consumedPct);
+        const overageWidthPx = computeOverageWidth(overage, entitlementRequests, hasOverage);
+        const fillClass = hasOverage ? styles.red : consumedColorClass(fillPct);
+        const barStyle = hasOverage
+          ? { width: `${150 + overageWidthPx}px` }
+          : undefined;
+        const fillStyle = hasOverage
+          ? { width: '150px' }
+          : { width: `${fillPct}%` };
         return (
           <div
             className={`${styles.bar} ${fillClass} ${state.status === 'refreshing' ? styles.refreshing : ''}`}
+            style={barStyle}
           >
-            <div className={styles.fill} style={{ width: `${consumedPct}%` }} />
+            <div
+              className={`${styles.fill} ${hasOverage ? styles.noRightRadius : ''}`}
+              style={fillStyle}
+            />
+            {hasOverage && (
+              <div className={styles.fillOverage} style={{ width: `${overageWidthPx}px` }} />
+            )}
             <span className={styles.label}>
-              {formatNumber(usedRequests)} / {formatNumber(entitlementRequests)} ({consumedPct}%)
+              {hasOverage
+                ? `${formatNumber(usedRequests)} / ${formatNumber(entitlementRequests)} (+${formatNumber(overage)})`
+                : `${formatNumber(usedRequests)} / ${formatNumber(entitlementRequests)} (${fillPct}%)`}
             </span>
+            {renderRefreshBtn()}
           </div>
         );
       }
@@ -184,7 +237,42 @@ export default function QuotaIndicator() {
 
   const renderTooltip = () => {
     const snapshot = getSnapshot();
-    if (!snapshot) return null;
+
+    if (!snapshot) {
+      switch (state.status) {
+        case 'loading':
+          return (
+            <div className={styles.tooltip}>
+              <div className={styles.tooltipHeader}>
+                <span className={styles.tooltipTitle}>Copilot Quota</span>
+              </div>
+              <div className={styles.tooltipFooter}>Loadingâ€¦</div>
+            </div>
+          );
+        case 'error':
+          return (
+            <div className={styles.tooltip}>
+              <div className={styles.tooltipHeader}>
+                <span className={styles.tooltipTitle}>Copilot Quota</span>
+              </div>
+              <div className={styles.tooltipFooter}>Error: {state.message}</div>
+            </div>
+          );
+        case 'not-available':
+          return (
+            <div className={styles.tooltip}>
+              <div className={styles.tooltipHeader}>
+                <span className={styles.tooltipTitle}>Copilot Quota</span>
+              </div>
+              <div className={styles.tooltipFooter}>
+                No quota data for &ldquo;{QUOTA_TYPE.replace(/_/g, ' ')}&rdquo;.
+              </div>
+            </div>
+          );
+        default:
+          return null;
+      }
+    }
 
     const {
       usedRequests,
@@ -194,11 +282,13 @@ export default function QuotaIndicator() {
       overageAllowedWithExhaustedQuota
     } = snapshot;
 
+    const hasOverage = overage > 0;
     const consumedPct = entitlementRequests > 0
-      ? Math.round((usedRequests / entitlementRequests) * 100)
+      ? Math.min(100, Math.round((usedRequests / entitlementRequests) * 100))
       : 0;
+    const overageWidthPx = computeOverageWidth(overage, entitlementRequests, hasOverage);
     const remaining = entitlementRequests > 0
-      ? entitlementRequests - usedRequests
+      ? Math.max(0, entitlementRequests - usedRequests)
       : 0;
 
     const lastRefreshLabel = lastRefreshedRef.current
@@ -218,38 +308,44 @@ export default function QuotaIndicator() {
             <span className={styles.tooltipUsageLabel}>used of</span>
             <span className={styles.tooltipUsageValue}>{entitlementRequests.toLocaleString()}</span>
           </div>
-          <div className={styles.tooltipBar}>
+          <div className={`${styles.tooltipBar} ${hasOverage ? styles.hasOverage : ''}`}>
             <div
               className={styles.tooltipBarFill}
               style={{ width: `${consumedPct}%` }}
             />
+            {hasOverage && (
+              <div
+                className={styles.tooltipBarFillOverage}
+                style={{ width: `${overageWidthPx}px` }}
+              />
+            )}
           </div>
           <div className={styles.tooltipBarLabels}>
-            <span>{consumedPct}% consumed</span>
+            <span>{hasOverage ? `${consumedPct}% consumed (+${overage.toLocaleString()})` : `${consumedPct}% consumed`}</span>
             <span>{remaining.toLocaleString()} remaining</span>
           </div>
         </div>
 
-        {(overage > 0 || usageAllowedWithExhaustedQuota || overageAllowedWithExhaustedQuota) && (
+        {(hasOverage || usageAllowedWithExhaustedQuota || overageAllowedWithExhaustedQuota) && (
           <div className={styles.tooltipDivider} />
         )}
 
         <div className={styles.tooltipDetails}>
-          {overage > 0 && (
+          {hasOverage && (
             <div className={styles.tooltipRow}>
-              <span>Overage</span>
-              <span>{overage.toLocaleString()}</span>
+              <span>Above limit</span>
+              <span>+{overage.toLocaleString()} requests</span>
             </div>
           )}
           {usageAllowedWithExhaustedQuota && (
             <div className={styles.tooltipRow}>
-              <span>Usage after exhaustion</span>
+              <span>Usage when limit reached</span>
               <span>Allowed</span>
             </div>
           )}
           {overageAllowedWithExhaustedQuota && (
             <div className={styles.tooltipRow}>
-              <span>Overage after exhaustion</span>
+              <span>Excess when limit reached</span>
               <span>Allowed</span>
             </div>
           )}
@@ -269,20 +365,15 @@ export default function QuotaIndicator() {
 
   return (
     <div className={styles.container} ref={containerRef}>
-      <button
+      <div
         className={styles.trigger}
         onClick={handleBarClick}
+        role="button"
+        tabIndex={0}
         aria-label="Copilot quota"
       >
         {renderBar()}
-      </button>
-      <button
-        className={`${styles.refreshBtn} ${isLoading ? styles.spinning : ''}`}
-        onClick={handleRefresh}
-        aria-label="Refresh quota"
-      >
-        <i className="fa-solid fa-rotate-right" aria-hidden="true" />
-      </button>
+      </div>
       {tooltipOpen && renderTooltip()}
     </div>
   );
