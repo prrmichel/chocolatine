@@ -5,6 +5,16 @@ All notable changes to Chocolatine are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Added
+
+- **Quota indicator** in the app header showing Copilot `premium_interactions` usage with a color-coded progress bar (green under 50%, yellow 50-80%, red over 80%), overage visualization via striped bar extension, and a detailed tooltip with usage breakdown. Auto-refreshes every 5 minutes with a manual refresh button.
+
+### Changed
+
+- Copilot SDK upgraded from 1.0.5 to 1.0.6.
+
 ## [0.2.0]
 
 ### Added

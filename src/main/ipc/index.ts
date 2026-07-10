@@ -6,6 +6,7 @@ import { registerRulesIpc } from '@main/ipc/rules';
 import { registerSettingsIpc } from '@main/ipc/settings';
 import { registerSkillsIpc } from '@main/ipc/skills';
 import { registerUiPreferencesIpc } from '@main/ipc/uiPreferences';
+import { registerQuotaIpc } from '@main/ipc/quota';
 import { MainIpcServices, type RegisterIpcArgs } from '@main/ipc/types';
 
 export const registerIpc = (...args: RegisterIpcArgs) => {
@@ -19,4 +20,5 @@ export const registerIpc = (...args: RegisterIpcArgs) => {
   registerFollowUpIpc(services);
   registerUiPreferencesIpc(services);
   registerSkillsIpc(services);
+  registerQuotaIpc(services);
 };

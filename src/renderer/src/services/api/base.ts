@@ -3,6 +3,7 @@ import {
   AskContext,
   AskMessage,
   ByokProviderConfig,
+  CopilotQuotaData,
   FollowUpContext,
   FollowUpContextSummary,
   ModelInfo,
@@ -117,6 +118,7 @@ declare global {
       validateAllSkills: () => Promise<SkillIntegritySummary>;
       saveAllSkillsToDisk: () => Promise<SkillDiskSyncResult>;
       writeToClipboard: (text: string) => void;
+      getCopilotQuota: () => Promise<CopilotQuotaData>;
     };
   }
 }
@@ -209,7 +211,8 @@ const createMissingApi = (): RendererApi => ({
   getSkillsIntegritySummary: fail,
   validateAllSkills: fail,
   saveAllSkillsToDisk: fail,
-  writeToClipboard: () => {}
+  writeToClipboard: () => {},
+  getCopilotQuota: fail
 });
 
 export const preloadApi: RendererApi = window.epullrequest ?? createMissingApi();

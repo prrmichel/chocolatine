@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '../styles/index.css';
 import styles from './App.module.css';
@@ -22,6 +22,7 @@ import SettingsModal from '@renderer/features/settings/SettingsModal/SettingsMod
 import ReviewOptionsModal from '@renderer/features/shared/ReviewOptionsModal';
 import AskTab from '@renderer/features/ask/AskTab/AskTab';
 import SkillsTab from '@renderer/features/skills/SkillsTab/SkillsTab';
+import { QuotaIndicator } from '@renderer/features/quota/QuotaIndicator';
 import { LABELS } from './labels';
 
 const buildReviewPrompt = (
@@ -593,6 +594,7 @@ export default function App() {
           ))}
         </nav>
         <div className={styles.actions}>
+          <QuotaIndicator />
           <button
             className={`btn ${styles.actionIconBtn} ${activeTab === 'prompt-results' ? styles.actionIconBtnActive : ''}`}
             onClick={() => setActiveTab('prompt-results')}
@@ -648,7 +650,6 @@ export default function App() {
         </div>
       )}
       {loading && <div className="loading">{LABELS.loading}</div>}
-
       <main className={styles.content}>
         {activeTab === 'pull-requests' && (
           <div className={styles.grid} ref={prGridRef}>
