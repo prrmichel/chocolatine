@@ -16,49 +16,21 @@ const categories: Array<PromptCategory | 'all'> = ['all', 'PR Review', 'Work Ite
 const PR_REVIEW_STARTER_TEMPLATE = `You are a senior code reviewer performing a pull request review.
 
 You will receive:
-- Pull request metadata
-- Pull request context (work items, acceptance criteria, comments)
-- Code changes
+- Pull request title and metadata
+- Code changes as unified diffs
+- Depending on the execution context, read-only access to the PR review worktree
 
 Review goals:
-1. Focus on Security, Correctness, Performance, and Maintainability.
-2. Prioritize issues directly tied to changed lines.
-3. Include evidence from the changes for each comment.
-4. Do not invent issues when evidence is missing.
+1. Review only the provided pull request changes.
+2. Focus on Security, Correctness, Performance, and Maintainability.
+3. Prioritize issues directly tied to changed lines.
+4. Include evidence from the changes for each comment.
+5. Do not invent issues when evidence is missing.
 
-Output requirements (mandatory):
-- Return valid JSON only (no markdown, no extra text).
-- Follow exactly this schema:
-{
-  "titleReview": {
-    "currentTitle": "{Title}",
-    "isEnglish": true,
-    "suggestedEnglishTitle": "",
-    "notes": ""
-  },
-  "comments": [
-    {
-      "id": "C1",
-      "reviewArea": "<technology>",
-      "category": "Security|Performance|Correctness|Maintainability|Style|Title",
-      "severity": "Info|Warning|Critical",
-      "file": "path/or/empty",
-      "lineNew": 0,
-      "lineOld": 0,
-      "message": "What is wrong and why",
-      "suggestion": "Concrete improvement",
-      "solution": "How to fix it",
-      "evidence": "Quote from changes"
-    }
-  ],
-  "overallSummary": "Short summary of changes and key risks",
-  "skillMarkerUsage": "List skill markers used, if any"
-}
-
-Rules:
-- Use 0 for unknown line numbers.
-- For global comments, use file="" and lineNew/lineOld=0.
-- Keep comments concise and actionable.`;
+Additional tasks:
+- Verify the pull request title is written in English. If not, propose a corrected English title.
+- Verify Product Backlog Item / development-task alignment when the available evidence exposes that linkage (PR title, branch name, diffs, worktree context). Do not invent a mismatch.
+- Review dependency additions or changes introduced by this PR. Flag unapproved third-party libraries.`;
 
 const WORK_ITEM_STARTER_TEMPLATE = `You are reviewing an Azure DevOps pull request against linked work items.
 

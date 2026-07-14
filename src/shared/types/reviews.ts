@@ -45,6 +45,8 @@ export interface CopilotReviewComment {
 export interface ReviewSessionOptions {
   requestedContextMode?: ReviewContextMode | null;
   workingDirectory?: string | null;
+  /** When true, activates the `code-reviewer` custom agent for deep review methodology. */
+  useCodeReviewAgent?: boolean;
 }
 
 export interface ReviewPromptChangeBoundary {
