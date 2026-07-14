@@ -13,6 +13,7 @@ interface RunHeaderProps {
   storedSkillNamesByMarker?: ReadonlyMap<string, string>;
   onOpenFollowUp?: (job: ReviewJob) => void;
   onOpenPrompt?: () => void;
+  onExportComments?: () => void;
   onMarkRead?: () => void;
   onMarkUnread?: () => void;
   isCollapsible?: boolean;
@@ -24,6 +25,7 @@ export default function RunHeader({
   storedSkillNamesByMarker,
   onOpenFollowUp,
   onOpenPrompt,
+  onExportComments,
   onMarkRead,
   onMarkUnread,
   isCollapsible = false
@@ -138,6 +140,22 @@ export default function RunHeader({
             aria-label={LABELS.viewExecutedPrompt}
           >
             <i className="fa-solid fa-circle-info" aria-hidden="true" />
+          </button>
+        )}
+        {onExportComments && (
+          <button
+            className="btn"
+            onClick={(event) => {
+              if (isCollapsible) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+              onExportComments();
+            }}
+            title={LABELS.exportComments}
+            aria-label={LABELS.exportComments}
+          >
+            <i className="fa-solid fa-file-export" aria-hidden="true" />
           </button>
         )}
         {isCollapsible && <i className={`fa-solid fa-chevron-down ${styles.reviewRunChevron}`} aria-hidden="true" />}

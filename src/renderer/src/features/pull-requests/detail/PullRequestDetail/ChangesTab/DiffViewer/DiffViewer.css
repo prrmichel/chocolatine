@@ -173,6 +173,25 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.diff-inline-comment-header-copy-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-accent);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.diff-inline-comment-header-copy-btn:hover {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .diff-inline-comment[open] .diff-inline-comment-chevron {
   transform: rotate(180deg);
 }

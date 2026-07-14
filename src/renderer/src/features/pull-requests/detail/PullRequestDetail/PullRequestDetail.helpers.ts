@@ -109,6 +109,44 @@ export const buildAdoCommentDraft = (
   return lines.join('\n').trim();
 };
 
+export const buildBulkExportMarkdown = (
+  comments: CopilotReviewComment[],
+  runNumber: number,
+  modelName: string,
+  runDate: string,
+  summary?: string
+): string => {
+  const severityCounts = new Map<string, number>();
+  for (const c of comments) {
+    const s = c.severity ?? 'Info';
+    severityCounts.set(s, (severityCounts.get(s) ?? 0) + 1);
+  }
+  const severitySummary = Array.from(severityCounts.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([s, n]) => `${s}: ${n}`)
+    .join(' · ');
+
+  const headerLines = [
+    `# Review Run ${runNumber} — ${modelName} · ${runDate}`,
+    ''
+  ];
+  if (summary) {
+    headerLines.push(`**Review Summary:** ${summary}`);
+    headerLines.push('');
+  }
+  headerLines.push(
+    `**${comments.length} selected comment${comments.length === 1 ? '' : 's'}**${severitySummary ? ` — ${severitySummary}` : ''}`,
+    '',
+    '---',
+    ''
+  );
+
+  const header = headerLines.join('\n');
+  const body = comments.map((c) => buildAdoCommentDraft(c, runNumber)).join('\n\n---\n\n');
+
+  return header + body;
+};
+
 export const formatSentTimestamp = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
