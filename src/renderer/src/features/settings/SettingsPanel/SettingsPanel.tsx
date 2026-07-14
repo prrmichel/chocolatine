@@ -356,7 +356,7 @@ export default function SettingsPanel({
               <p>{LABELS.promptHelpIntro}</p>
               <section>
                 <h3>{LABELS.promptHelpHowToBuildTitle}</h3>
-                <p>{LABELS.promptHelpHowToBuild}</p>
+                <div className={styles.promptHelpPreline}>{LABELS.promptHelpHowToBuild}</div>
               </section>
               <section>
                 <h3>{LABELS.promptHelpParsingTitle}</h3>
@@ -364,10 +364,22 @@ export default function SettingsPanel({
               </section>
               <section>
                 <h3>{LABELS.promptHelpChecklistTitle}</h3>
-                <p>{LABELS.promptHelpChecklist}</p>
+                <div className={styles.promptHelpPreline}>{LABELS.promptHelpChecklist}</div>
               </section>
               <section>
-                <h3>{LABELS.promptHelpExampleTitle}</h3>
+                <div className={styles.promptHelpSectionHeader}>
+                  <h3>{LABELS.promptHelpExampleTitle}</h3>
+                  <button
+                    className={styles.promptHelpCopyBtn}
+                    onClick={() => {
+                      navigator.clipboard.writeText(PR_REVIEW_HELP_EXAMPLE);
+                    }}
+                    title={LABELS.promptHelpCopyExample}
+                    aria-label={LABELS.promptHelpCopyExample}
+                  >
+                    <i className="fa-regular fa-copy" aria-hidden="true" />
+                  </button>
+                </div>
                 <pre className={styles.promptHelpExample}>{PR_REVIEW_HELP_EXAMPLE}</pre>
               </section>
             </div>

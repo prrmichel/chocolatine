@@ -127,18 +127,12 @@ SKILL_MARKER_a3f2e1d9_SECURITY_CHECKS
 
 ### Using Skill Markers in Prompts
 
-In your PR Review prompt, include the `"skillMarkerUsage"` field in the JSON schema:
+The `skillMarkerUsage` field is part of the output format that the code-reviewer agent
+produces automatically. You do not need to include it or any other JSON schema in your
+PR Review prompt — the agent handles all output formatting.
 
-```json
-{
-  "titleReview": { ... },
-  "comments": [ ... ],
-  "overallSummary": "...",
-  "skillMarkerUsage": "List skill markers used, if any"
-}
-```
-
-This field asks the model to list which skill markers appeared in its reasoning or were relevant to its findings. When you review the **Results** tab, you can see which skills influenced each comment.
+When you review the **Results** tab, you can see which skill markers appeared in the
+model's reasoning and which skills influenced each comment.
 
 ### See Also
 

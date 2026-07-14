@@ -21,60 +21,45 @@ export const LABELS = {
   savePromptChanges: 'Save prompt changes',
   noPromptSelected: 'No prompt selected.',
   promptHelpTitle: 'How to write your first PR Review prompt',
-  promptHelpIntro: 'Use this guide to build a PR Review prompt that the app can parse reliably.',
+  promptHelpIntro: 'The code-reviewer agent handles methodology and output formatting. Your prompt only needs to define what to review.',
   promptHelpHowToBuildTitle: 'How to build the prompt',
-  promptHelpHowToBuild: 'Ask the model to review only provided changes, focus on actionable findings, and return strict JSON only.',
+  promptHelpHowToBuild: `Your prompt should define four things:
+1. Scope — what the review should focus on
+2. Focus areas — Security, Correctness, Performance, Maintainability
+3. Specific tasks — title verification, dependency review, work item alignment
+4. Custom instructions — any additional context or constraints
+The agent handles everything else.`,
   promptHelpParsingTitle: 'How results are parsed',
-  promptHelpParsing: 'The app extracts top-level JSON object(s) from the model response and parses comments. Invalid JSON or markdown-wrapped output prevents structured parsing.',
+  promptHelpParsing: 'The code-reviewer agent is instructed to output structured results in a specific format. You do not need to repeat formatting instructions or schemas in your prompt — the agent enforces this automatically.',
   promptHelpChecklistTitle: 'Recommended checklist',
-  promptHelpChecklist: '1) State review scope. 2) Require strict JSON-only output. 3) Provide the expected schema. 4) Define line/file conventions for global findings.',
+  promptHelpChecklist: `1) State review scope.
+2) Define focus areas (Security, Correctness, Performance, Maintainability).
+3) Specify concrete tasks (e.g., title review, dependency checks, work item alignment).
+4) Add any custom instructions or constraints.`,
   promptHelpExampleTitle: 'Starter example (PR Review)',
-  closeHelp: 'Close help',
+  promptHelpCopyExample: 'Copy example to clipboard',
+  closeHelp: 'Close',
   confirmDeleteTitle: 'Delete prompt',
   confirmDelete: 'Delete',
 } as const;
 
-export const PR_REVIEW_HELP_EXAMPLE = `You are a senior code reviewer.
+export const PR_REVIEW_HELP_EXAMPLE = `You are a senior code reviewer performing a pull request review.
 
-Review only the provided pull request changes.
-Focus on Security, Performance, Correctness, and Maintainability.
-Do not invent issues without evidence.
+You will receive:
+- Pull request title and metadata
+- Code changes as unified diffs
+- Depending on the execution context, read-only access to the PR review worktree
 
-Return strict JSON only (no markdown, no extra text) using:
-{
-  "titleReview": {
-    "currentTitle": "{Title}",
-    "isEnglish": true,
-    "suggestedEnglishTitle": "",
-    "notes": ""
-  },
-  "comments": [
-    {
-      "id": "C1",
-      "reviewArea": "<technology>",
-      "category": "Security|Performance|Correctness|Maintainability|Style|Title",
-      "severity": "Info|Warning|Critical",
-      "file": "path/or/empty",
-      "lineNew": 0,
-      "lineOld": 0,
-      "message": "What is wrong and why",
-      "suggestion": "Concrete improvement",
-      "solution": "How to fix it",
-      "evidence": "Quote from changes"
-    }
-  ],
-  "overallSummary": "Short summary of changes and key risks",
-  "skillMarkerUsage": "List skill markers used, if any"
-}
+Review goals:
+1. Review only the provided pull request changes.
+2. Focus on Security, Correctness, Performance, and Maintainability.
+3. Prioritize issues directly tied to changed lines.
+4. Include evidence from the changes for each comment.
+5. Do not invent issues when evidence is missing.
 
-Rules:
-- If line numbers are unknown, use 0.
-- If the issue is general (not a specific file), use 'file=""' and 'lineNew=0', 'lineOld=0'.
-- If a finding depends on unchanged code inspected through the review worktree, make the dependency on the PR change explicit in 'message' or 'evidence'.
-- Do not invent issues; only comment when evidence exists in the diff or in directly relevant review-worktree context.
-- Keep comments concise but actionable.
-- If there is no issue for a section, return valid JSON with an empty 'comments' array rather than explanatory prose.
-`;
+Additional tasks:
+- Verify the pull request title is written in English. If not, propose a corrected English title.
+- Review dependency additions or changes introduced by this PR. Flag unapproved third-party libraries.`;
 
 export const confirmDeleteMessage = (name: string): string =>
   `Delete "${name}"? This action cannot be undone.`;
