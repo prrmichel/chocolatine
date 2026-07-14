@@ -149,11 +149,3 @@
   font-size: 13px;
 }
 
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--vscode-border);
-}

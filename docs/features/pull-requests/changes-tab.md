@@ -33,6 +33,11 @@ The Changes tab is the most feature-dense part of the app. It combines a file tr
 - **Markdown rendering** — Copilot comments and Azure DevOps user comments render markdown formatting such as lists, code fences, tables, links, and blockquotes.
 - **Filter by review run** — Show or hide comments from specific review runs.
 - **Hide all review runs** — Temporarily remove all AI comments from the view.
+- **Copy comment as markdown** — Accent-colored button next to **Send to ADO** on each inline comment header.
+Copies the full comment (metadata, message, evidence, suggestion, solution) as formatted markdown.
+Shows a checkmark + "Copied!" tooltip for 2 seconds after copying.
+- **Copy individual fields** — Each field (message, solution, suggestion, evidence) has its own copy button.
+Hidden when the field is empty.
 - **Send to Azure DevOps** — Open a modal from a Copilot comment, edit the markdown draft, and publish it as a new Azure DevOps PR thread.
 - **Sent indicator** — After a successful publish, the **Send to ADO** icon stays highlighted, its tooltip shows the latest send timestamp, and that state is restored when you reopen the PR later.
 

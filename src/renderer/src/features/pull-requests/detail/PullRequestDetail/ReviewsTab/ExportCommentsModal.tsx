@@ -80,7 +80,7 @@ export default function ExportCommentsModal({
           <div className="modal-header row between">
             <h2>{LABELS.exportCommentsTitle(run.runNumber)}</h2>
           </div>
-          <div className="modal-body">
+          <div className={styles.modalBody}>
             <div className={styles.emptyState}>{LABELS.noCommentsToExport}</div>
           </div>
           <div className="modal-footer">
@@ -141,6 +141,7 @@ export default function ExportCommentsModal({
                     <input
                       type="checkbox"
                       checked={isSelected}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => toggleIndex(index)}
                       aria-label={`Select comment ${index + 1}`}
                     />

@@ -37,6 +37,27 @@ The Reviews tab is where you launch AI code reviews and explore the results. You
 - **Inspect prompt** — View the exact prompt that was sent to the model, including injected rules.
 - **Navigate to code** — Click a finding to jump to the relevant file and line in the Changes or User Comments view.
 
+### Copying & Exporting Comments
+
+- **Copy comment as markdown** — Accent-colored button at the right of each comment header.
+Copies the full comment (metadata, message, evidence, suggestion, solution) as formatted markdown.
+- **Copy individual fields** — Each field (message, solution, suggestion, evidence) has its own copy button.
+Hidden when the field is empty.
+Both header and field buttons show a checkmark + "Copied!" tooltip for 2 seconds after copying.
+
+#### Exporting Multiple Comments
+
+Open the **export modal** from the run header's export button to copy several comments at once.
+
+- **Selection** — All comments are pre-selected.
+Click a card or its checkbox to toggle selection.
+Selected cards show a blue left-border accent.
+- **Toolbar** — **Select all**, **Deselect all**, and per-severity quick-select buttons (e.g., click the "Warning" badge to select only warnings).
+A "X selected" counter tracks the current selection.
+- **Run summary** — The review run's overall summary is displayed above the comment list and included in the exported markdown.
+- **Copy action** — The footer shows **Copy selected as markdown** (hidden when nothing is selected).
+Exported text includes the run header, summary, severity counts, and all selected comments separated by `---`.
+
 ### Managing Runs
 
 - **Show all runs** or isolate a specific run.
