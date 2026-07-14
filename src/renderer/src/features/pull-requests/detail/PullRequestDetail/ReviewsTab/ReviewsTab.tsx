@@ -527,6 +527,7 @@ export default function ReviewsTab({
                     onNavigateToLine={onNavigateToLine}
                     isCommentRead={isCommentRead}
                     onToggleCommentRead={onToggleCommentRead}
+                    runNumber={run.runNumber}
                   />
                 </div>
               </details>
@@ -561,6 +562,7 @@ export default function ReviewsTab({
               onNavigateToLine={onNavigateToLine}
               isCommentRead={isCommentRead}
               onToggleCommentRead={onToggleCommentRead}
+              runNumber={selectedRun.runNumber}
             />
           </div>
         </details>

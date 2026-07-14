@@ -1,6 +1,7 @@
 import { getSeverityClass } from '@renderer/utils/severity';
 import CommentMarkdown from '@renderer/features/shared/CommentMarkdown/CommentMarkdown';
-import { formatSentTimestamp } from '../../PullRequestDetail.helpers';
+import CopyButton from '@renderer/features/shared/CopyButton/CopyButton';
+import { formatSentTimestamp, buildAdoCommentDraft } from '../../PullRequestDetail.helpers';
 import { LABELS, copilotRunLabel, lineLabel } from '../ChangesTab.messages';
 import type { ReviewCommentEntry } from '../ChangesTab.types';
 import styles from '../ChangesTab.module.css';
@@ -48,6 +49,12 @@ export default function FileLevelComments({
                 {entry.comment.reviewArea && <span className="badge tag">{entry.comment.reviewArea}</span>}
                 {entry.comment.category && <span className="badge tag">{entry.comment.category}</span>}
               </span>
+              <CopyButton
+                text={buildAdoCommentDraft(entry.comment, entry.runNumber)}
+                title={LABELS.copyCommentMarkdown}
+                className="diff-inline-comment-send-btn"
+                feedback
+              />
               {onSendToAdo && (
                 <button
                   type="button"

@@ -1,9 +1,9 @@
 import { CopilotReviewComment, CopilotReviewResult, ReviewAttemptUsageSummary, ReviewJob } from '@shared/types/models';
 import { getSeverityClass } from '@renderer/utils/severity';
-import { copyToClipboard } from '@renderer/utils/clipboard';
 import { getElapsedSeconds, getDisplayProgress, getProgressLabel } from '@renderer/utils/progress';
 import ReviewSkillMarkersPanel from '@renderer/features/shared/ReviewSkillMarkersPanel/ReviewSkillMarkersPanel';
-import { buildCommentReadKey } from '../PullRequestDetail.helpers';
+import CopyButton from '@renderer/features/shared/CopyButton/CopyButton';
+import { buildAdoCommentDraft, buildCommentReadKey } from '../PullRequestDetail.helpers';
 import { getUsedSkillNames, hasReviewSkillPanelData } from './ReviewsTab.skillUsage';
 import { LABELS } from './ReviewsTab.messages';
 import styles from './ReviewsTab.module.css';
@@ -18,6 +18,7 @@ interface RunResultProps {
   onNavigateToLine: (file: string, line?: number) => void;
   isCommentRead: (commentKey: string) => boolean;
   onToggleCommentRead: (commentKey: string) => void;
+  runNumber: number;
 }
 
 const formatUsageSummary = (summary: ReviewAttemptUsageSummary): string => {
@@ -54,7 +55,8 @@ export default function RunResult({
   onSeverityFilterChange,
   onNavigateToLine,
   isCommentRead,
-  onToggleCommentRead
+  onToggleCommentRead,
+  runNumber
 }: RunResultProps) {
   const progress = getDisplayProgress(run.job);
   const progressLabel = getProgressLabel(run.job, progress);
@@ -193,6 +195,12 @@ export default function RunResult({
               <details key={`${run.id}-${index}`} className={`comment-card ${read ? 'read' : ''}`} open={!read}>
                 <summary className="comment-header comment-header-actions-left">
                   <div className="comment-header-actions">
+                    <CopyButton
+                      text={buildAdoCommentDraft(comment, runNumber)}
+                      title={LABELS.copyCommentMarkdown}
+                      className="comment-read-btn"
+                      feedback
+                    />
                     <button
                       type="button"
                       className="comment-read-btn"
@@ -252,23 +260,17 @@ export default function RunResult({
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.messageLabel}</strong>
                     <div className="comment-field-value">{comment.message || LABELS.dash}</div>
-                    <button className="comment-copy-btn" onClick={() => { void copyToClipboard(comment.message ?? ''); }} title={LABELS.copyMessage} disabled={!comment.message}>
-                      <i className="fa-regular fa-copy" aria-hidden="true" />
-                    </button>
+                    <CopyButton text={comment.message ?? ''} title={LABELS.copyMessage} className="comment-copy-btn" feedback />
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.solutionLabel}</strong>
                     <div className="comment-field-value">{comment.solution || LABELS.dash}</div>
-                    <button className="comment-copy-btn" onClick={() => { void copyToClipboard(comment.solution ?? ''); }} title={LABELS.copySolution} disabled={!comment.solution}>
-                      <i className="fa-regular fa-copy" aria-hidden="true" />
-                    </button>
+                    <CopyButton text={comment.solution ?? ''} title={LABELS.copySolution} className="comment-copy-btn" feedback />
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.suggestionLabel}</strong>
                     <div className="comment-field-value">{comment.suggestion || LABELS.dash}</div>
-                    <button className="comment-copy-btn" onClick={() => { void copyToClipboard(comment.suggestion ?? ''); }} title={LABELS.copySuggestion} disabled={!comment.suggestion}>
-                      <i className="fa-regular fa-copy" aria-hidden="true" />
-                    </button>
+                    <CopyButton text={comment.suggestion ?? ''} title={LABELS.copySuggestion} className="comment-copy-btn" feedback />
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.evidenceLabel}</strong>

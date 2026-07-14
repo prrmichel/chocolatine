@@ -27,7 +27,8 @@ import { PullRequestThread } from '@shared/types/models';
 import { getSeverityClass } from '@renderer/utils/severity';
 import { copyToClipboard } from '@renderer/utils/clipboard';
 import CommentMarkdown from '@renderer/features/shared/CommentMarkdown/CommentMarkdown';
-import { formatSentTimestamp, normalizePath } from '../../PullRequestDetail.helpers';
+import CopyButton from '@renderer/features/shared/CopyButton/CopyButton';
+import { buildAdoCommentDraft, formatSentTimestamp, normalizePath } from '../../PullRequestDetail.helpers';
 import { LABELS } from '../ChangesTab.messages';
 import type { ReviewCommentEntry } from '../ChangesTab.types';
 import { getLanguageFromPath } from '@renderer/utils/fileIcons';
@@ -149,7 +150,7 @@ export default memo(function DiffViewer({
     return (
       <>
         <div className="diff-side-grid">
-          {renderSideBySideDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating)}
+          {renderSideBySideDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating, filePath)}
         </div>
         {isTruncated && (
           <button type="button" className="diff-show-all-btn" onClick={() => setShowAll(true)}>
@@ -161,7 +162,7 @@ export default memo(function DiffViewer({
   }
   return (
     <>
-      <pre className="diff-pre">{renderDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating)}</pre>
+      <pre className="diff-pre">{renderDiffLines(displayText, language, lineComments, onGoToReview, isCommentRead, onToggleCommentRead, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, lineThreads, isThreadRead, onToggleThreadRead, onToggleThreadResolved, isThreadStatusUpdating, filePath)}</pre>
       {isTruncated && (
         <button type="button" className="diff-show-all-btn" onClick={() => setShowAll(true)}>
           Show all {lineCount.toLocaleString()} lines ({(lineCount - MAX_INITIAL_LINES).toLocaleString()} more)
@@ -264,7 +265,8 @@ const renderDiffLines = (
   isThreadRead?: (threadId: number) => boolean,
   onToggleThreadRead?: (threadId: number) => void,
   onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>,
-  isThreadStatusUpdating?: (threadId: number) => boolean
+  isThreadStatusUpdating?: (threadId: number) => boolean,
+  filePath?: string
 ) => {
   const lines = diffText.split('\n');
   let newLine = 0;
@@ -363,7 +365,7 @@ const renderDiffLines = (
         <span key={`${index}-comments`} className="diff-inline-comments">
           {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment, false, undefined, onToggleThreadResolved, isThreadStatusUpdating))}
           {hasComments && commentsHere!.map((entry, ci) =>
-            renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt)
+            renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, filePath)
           )}
           {index < lines.length - 1 ? '\n' : ''}
         </span>
@@ -407,7 +409,8 @@ const renderSideBySideDiffLines = (
   isThreadRead?: (threadId: number) => boolean,
   onToggleThreadRead?: (threadId: number) => void,
   onToggleThreadResolved?: (thread: PullRequestThread) => Promise<void>,
-  isThreadStatusUpdating?: (threadId: number) => boolean
+  isThreadStatusUpdating?: (threadId: number) => boolean,
+  filePath?: string
 ) => {
   const lines = diffText.split('\n');
   let oldLine = 0;
@@ -507,7 +510,7 @@ const renderSideBySideDiffLines = (
           <div className="diff-side-inline-comments">
             {hasThreads && threadsHere!.map((thread) => renderInlineThread(thread, isThreadRead, onToggleThreadRead, onAskComment, false, undefined, onToggleThreadResolved, isThreadStatusUpdating))}
             {hasComments && commentsHere!.map((entry, ci) =>
-              renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt)
+              renderInlineComment(entry, ci, isCommentRead, onToggleCommentRead, onGoToReview, isCommentFavorite, onToggleCommentFavorite, onOpenFollowUp, onAskComment, onSendToAdo, getCommentSentAt, filePath)
             )}
           </div>
         </div>
@@ -676,7 +679,8 @@ const renderInlineComment= (
   onOpenFollowUp?: (runId: string) => void,
   onAskComment?: (text: string) => void,
   onSendToAdo?: (entry: ReviewCommentEntry) => void,
-  getCommentSentAt?: (commentKey: string) => string | null
+  getCommentSentAt?: (commentKey: string) => string | null,
+  filePath?: string
 ) => {
   const sentAt = getCommentSentAt?.(entry.commentKey) ?? null;
   const sendTitle = sentAt ? LABELS.sentToAdoAt(formatSentTimestamp(sentAt)) : LABELS.sendToAdoTitle;
@@ -705,6 +709,12 @@ const renderInlineComment= (
           {entry.comment.reviewArea && <span className="badge tag">{entry.comment.reviewArea}</span>}
           {entry.comment.category && <span className="badge tag">{entry.comment.category}</span>}
         </span>
+        <CopyButton
+          text={buildAdoCommentDraft(entry.comment, entry.runNumber, filePath)}
+          title={LABELS.copyCommentMarkdown}
+          className="diff-inline-comment-send-btn"
+          feedback
+        />
         {onSendToAdo && (
           <button
             type="button"
@@ -739,30 +749,23 @@ const renderInlineComment= (
       <div className="diff-inline-comment-body">
         <div className="diff-inline-comment-msg-row">
           <CommentMarkdown content={entry.comment.message ?? ''} className="diff-inline-comment-msg" />
-          <button
-            type="button"
-            className="diff-inline-copy-btn"
-            onClick={() => { void copyText(entry.comment.message ?? ''); }}
-            disabled={!entry.comment.message}
+          <CopyButton
+            text={entry.comment.message ?? ''}
             title="Copy message"
-            aria-label="Copy message"
-          >
-            <i className="fa-regular fa-copy" aria-hidden="true" />
-          </button>
+            className="diff-inline-copy-btn"
+            feedback
+          />
         </div>
         {entry.comment.suggestion && (
           <div className="diff-inline-comment-suggestion">
             <div className="diff-inline-comment-suggestion-header">
               <strong>Suggestion:</strong>
-              <button
-                type="button"
-                className="diff-inline-copy-btn"
-                onClick={() => { void copyText(entry.comment.suggestion ?? ''); }}
+              <CopyButton
+                text={entry.comment.suggestion ?? ''}
                 title="Copy suggestion"
-                aria-label="Copy suggestion"
-              >
-                <i className="fa-regular fa-copy" aria-hidden="true" />
-              </button>
+                className="diff-inline-copy-btn"
+                feedback
+              />
             </div>
             <CommentMarkdown content={entry.comment.suggestion} />
           </div>
@@ -771,15 +774,12 @@ const renderInlineComment= (
           <div className="diff-inline-comment-solution">
             <div className="diff-inline-comment-suggestion-header">
               <strong>Solution:</strong>
-              <button
-                type="button"
-                className="diff-inline-copy-btn"
-                onClick={() => { void copyText(entry.comment.solution ?? ''); }}
+              <CopyButton
+                text={entry.comment.solution ?? ''}
                 title="Copy solution"
-                aria-label="Copy solution"
-              >
-                <i className="fa-regular fa-copy" aria-hidden="true" />
-              </button>
+                className="diff-inline-copy-btn"
+                feedback
+              />
             </div>
             <CommentMarkdown content={entry.comment.solution} />
           </div>

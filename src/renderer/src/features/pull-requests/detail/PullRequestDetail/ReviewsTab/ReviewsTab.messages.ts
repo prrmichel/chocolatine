@@ -91,6 +91,8 @@ export const LABELS = {
   solutionLabel: 'Solution:',
   suggestionLabel: 'Suggestion:',
   evidenceLabel: 'Evidence:',
+  copyCommentMarkdown: 'Copy comment as markdown',
+  copied: 'Copied!',
   copyMessage: 'Copy message',
   copySolution: 'Copy solution',
   copySuggestion: 'Copy suggestion',
