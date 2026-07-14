@@ -47,20 +47,30 @@ Click **Prompt Library** in the main navigation tab bar.
 
 ## Tips & Best Practices
 
-- Keep prompts focused on a single concern (security, performance, naming conventions) rather than trying to cover everything in one prompt. Run multiple reviews with different prompts for comprehensive coverage.
-- The prompt content is sent as-is, followed by any custom instructions, injected rules, and code diffs. Write prompts with this in mind.
-- Keep at least one prompt in each category you actively use; otherwise launch actions for that category are disabled.
+- Keep prompts focused on scope, focus areas, and specific tasks.
+  The code-reviewer agent owns methodology and output formatting —
+  your prompt should not duplicate JSON schemas or review procedures.
+- Run multiple reviews with different prompts for comprehensive
+  coverage (e.g., one for security, one for performance).
+- The prompt content is sent as-is, followed by any custom instructions,
+  injected skills, review execution context, and code diffs.
+- Keep at least one prompt in each category you actively use; otherwise
+  launch actions for that category are disabled.
 
 ## PR Review Prompt Help
 
 ### How to Build the Prompt
 
-For PR Review prompts, write the template so the model:
+For PR Review prompts, the code-reviewer agent already owns methodology and JSON
+output formatting. Your template only needs to define:
 
-1. Reviews only the provided changes.
-2. Focuses on actionable findings (security, correctness, performance, maintainability).
-3. Returns **strict JSON only** (no markdown, no prose outside JSON).
-4. Follows a stable schema for title review + comments + summary fields.
+1. **Scope** — what the review should focus on.
+2. **Focus areas** — which dimensions to check (Security, Correctness, Performance, Maintainability).
+3. **Specific tasks** — title verification, dependency review, work item alignment, etc.
+4. **Custom instructions** — any additional context or constraints.
+
+Do not include JSON schemas, output formatting rules, or review methodology
+in your prompt — the agent handles that automatically.
 
 ### How Result Parsing Works
 
@@ -71,52 +81,31 @@ When a review completes, the app parses the model response into structured findi
 - If multiple JSON objects are present (batch cases), comments are merged.
 - If output is not valid JSON (or wrapped with extra markdown/text), structured parsing may fail and findings may not render as expected.
 
-This is why the prompt must explicitly enforce strict JSON output and a predictable schema.
+The code-reviewer agent is instructed to output strict JSON wrapped in a markdown code fence. Users do not need to repeat this instruction — the agent enforces the output format automatically.
 
 ### Starter Example (PR Review)
 
 ```text
-You are a senior code reviewer.
+You are a senior code reviewer performing a pull request review.
 
 Review only the provided pull request changes.
 Focus on Security, Performance, Correctness, and Maintainability.
+Prioritize issues directly tied to changed lines.
+Include evidence from the changes for each comment.
 Do not invent issues without evidence.
 
-Return strict JSON only (no markdown, no extra text) using:
-{
-  "titleReview": {
-    "currentTitle": "{Title}",
-    "isEnglish": true,
-    "suggestedEnglishTitle": "",
-    "notes": ""
-  },
-  "comments": [
-    {
-      "id": "C1",
-      "reviewArea": "<technology>",
-      "category": "Security|Performance|Correctness|Maintainability|Style|Title",
-      "severity": "Info|Warning|Critical",
-      "file": "path/or/empty",
-      "lineNew": 0,
-      "lineOld": 0,
-      "message": "What is wrong and why",
-      "suggestion": "Concrete improvement",
-      "solution": "How to fix it",
-      "evidence": "Quote from changes"
-    }
-  ],
-  "overallSummary": "Short summary of changes and key risks",
-  "skillMarkerUsage": "List skill markers used, if any"
-}
-
-Rules:
-- If line numbers are unknown, use 0.
-- If the issue is general (not a specific file), use `file=""` and `lineNew=0`, `lineOld=0`.
-- If a finding depends on unchanged code inspected through the review worktree, make the dependency on the PR change explicit in `message` or `evidence`.
-- Do not invent issues; only comment when evidence exists in the diff or in directly relevant review-worktree context.
-- Keep comments concise but actionable.
-- If there is no issue for a section, return valid JSON with an empty `comments` array rather than explanatory prose.
+Additional tasks:
+- Verify the pull request title is written in English.
+  If not, propose a corrected English title.
+- Verify work-item / development-task alignment when the
+  available evidence exposes that linkage. Do not invent
+  a mismatch.
+- Review dependency additions or changes introduced by
+  this PR. Flag unapproved third-party libraries.
 ```
+
+The code-reviewer agent handles methodology and output formatting.
+Your prompt only needs to define scope, focus areas, and specific tasks.
 
 ## Skills and Skill Markers
 

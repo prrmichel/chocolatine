@@ -1,8 +1,10 @@
 import { approveAll, CopilotClient } from '@github/copilot-sdk';
 import type { CopilotSession } from '@github/copilot-sdk';
+import type { CustomAgentConfig } from '@github/copilot-sdk';
 import { resolve } from 'path';
 import { DatabaseService } from '@main/core/persistence/databaseService';
 import { buildCopilotClientOptions } from '@main/utils/copilotClientOptions';
+import { CODE_REVIEW_AGENT_PROMPT } from '@main/core/copilot/codeReviewAgentPrompt';
 import { AUTO_MODEL_ID, normalizeSelectableModelId, toSdkModel } from '@shared/constants/modelOptions';
 import { COPILOT_TIMEOUT_MS } from '@shared/constants/timeouts';
 import type { CopilotQuotaData, ModelInfo, ReviewSessionOptions } from '@shared/types/models';
@@ -1253,6 +1255,21 @@ export class CopilotSessionManager {
     }
     if (reviewSessionOptions?.workingDirectory?.trim()) {
       options.workingDirectory = reviewSessionOptions.workingDirectory.trim();
+    }
+
+    // Inject code-reviewer custom agent for deep review sessions
+    if (reviewSessionOptions?.useCodeReviewAgent) {
+      const codeReviewAgent: CustomAgentConfig = {
+        name: 'code-reviewer',
+        displayName: 'Code Reviewer',
+        description: 'Deep, thorough pull request reviewer with codebase exploration tools',
+        prompt: CODE_REVIEW_AGENT_PROMPT,
+        tools: ['grep', 'glob', 'view'],
+        skills: ['review-changes'],
+        infer: false
+      };
+      options.customAgents = [codeReviewAgent];
+      options.agent = 'code-reviewer';
     }
 
     // Inject BYOK provider as NamedProviderConfig + ProviderModelConfig

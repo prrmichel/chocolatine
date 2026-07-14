@@ -307,6 +307,15 @@ export class ReviewQueueService extends EventEmitter {
       next.isReReview = isReReview;
       next.sessionKey = sessionKey;
       next.reviewSessionOptions = resolvedContext.reviewSessionOptions ?? null;
+
+      // Activate the code-reviewer custom agent for deep review methodology
+      if (!isSummaryTask) {
+        next.reviewSessionOptions = {
+          ...next.reviewSessionOptions,
+          useCodeReviewAgent: true
+        };
+      }
+
       next.effectiveContextMode = resolvedContext.effectiveContextMode;
       next.fallbackReason = resolvedContext.fallbackReason ?? null;
       this.setActivePhase(next, null, false);
