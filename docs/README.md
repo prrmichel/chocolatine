@@ -60,4 +60,4 @@ Current public posture: Windows-only, Azure DevOps-only, source-first, and self-
 - [Contributing](../CONTRIBUTING.md)
 - [Support](../SUPPORT.md)
 - [Security](../SECURITY.md)
-- [Roadmap](../ROADMAP.md)
+- [Changelog](../CHANGELOG.md)
