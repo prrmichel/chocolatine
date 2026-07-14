@@ -42,6 +42,7 @@ export const LABELS = {
   askMe: 'Ask me',
   askMeTitle: 'Ask Copilot about selected code',
   copyCommentMarkdown: 'Copy comment as markdown',
+  copyEvidence: 'Copy evidence',
   copied: 'Copied!',
   sendToAdo: 'Send to ADO',
   sendToAdoTitle: 'Send to ADO',

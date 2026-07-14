@@ -195,12 +195,6 @@ export default function RunResult({
               <details key={`${run.id}-${index}`} className={`comment-card ${read ? 'read' : ''}`} open={!read}>
                 <summary className="comment-header comment-header-actions-left">
                   <div className="comment-header-actions">
-                    <CopyButton
-                      text={buildAdoCommentDraft(comment, runNumber)}
-                      title={LABELS.copyCommentMarkdown}
-                      className="comment-read-btn"
-                      feedback
-                    />
                     <button
                       type="button"
                       className="comment-read-btn"
@@ -255,26 +249,35 @@ export default function RunResult({
                       )}
                     </div>
                   </div>
+                  <span style={{ marginLeft: 'auto' }}>
+                    <CopyButton
+                      text={buildAdoCommentDraft(comment, runNumber)}
+                      title={LABELS.copyCommentMarkdown}
+                      className="comment-read-btn"
+                      feedback
+                    />
+                  </span>
                 </summary>
                 <div className="comment-body">
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.messageLabel}</strong>
                     <div className="comment-field-value">{comment.message || LABELS.dash}</div>
-                    <CopyButton text={comment.message ?? ''} title={LABELS.copyMessage} className="comment-copy-btn" feedback />
+                    {comment.message && <CopyButton text={comment.message} title={LABELS.copyMessage} className="comment-copy-btn" feedback />}
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.solutionLabel}</strong>
                     <div className="comment-field-value">{comment.solution || LABELS.dash}</div>
-                    <CopyButton text={comment.solution ?? ''} title={LABELS.copySolution} className="comment-copy-btn" feedback />
+                    {comment.solution && <CopyButton text={comment.solution} title={LABELS.copySolution} className="comment-copy-btn" feedback />}
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.suggestionLabel}</strong>
                     <div className="comment-field-value">{comment.suggestion || LABELS.dash}</div>
-                    <CopyButton text={comment.suggestion ?? ''} title={LABELS.copySuggestion} className="comment-copy-btn" feedback />
+                    {comment.suggestion && <CopyButton text={comment.suggestion} title={LABELS.copySuggestion} className="comment-copy-btn" feedback />}
                   </div>
                   <div className="comment-field">
                     <strong className="comment-field-label">{LABELS.evidenceLabel}</strong>
                     <div className="comment-field-value">{comment.evidence || LABELS.dash}</div>
+                    {comment.evidence && <CopyButton text={comment.evidence} title={LABELS.copyEvidence} className="comment-copy-btn" feedback />}
                   </div>
                 </div>
               </details>

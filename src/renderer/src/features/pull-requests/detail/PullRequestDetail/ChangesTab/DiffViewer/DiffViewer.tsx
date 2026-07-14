@@ -749,12 +749,14 @@ const renderInlineComment= (
       <div className="diff-inline-comment-body">
         <div className="diff-inline-comment-msg-row">
           <CommentMarkdown content={entry.comment.message ?? ''} className="diff-inline-comment-msg" />
-          <CopyButton
-            text={entry.comment.message ?? ''}
-            title="Copy message"
-            className="diff-inline-copy-btn"
-            feedback
-          />
+          {entry.comment.message && (
+            <CopyButton
+              text={entry.comment.message}
+              title="Copy message"
+              className="diff-inline-copy-btn"
+              feedback
+            />
+          )}
         </div>
         {entry.comment.suggestion && (
           <div className="diff-inline-comment-suggestion">
@@ -786,7 +788,15 @@ const renderInlineComment= (
         )}
         {entry.comment.evidence && (
           <div className="diff-inline-comment-evidence">
-            <strong>Evidence:</strong>
+            <div className="diff-inline-comment-suggestion-header">
+              <strong>Evidence:</strong>
+              <CopyButton
+                text={entry.comment.evidence}
+                title="Copy evidence"
+                className="diff-inline-copy-btn"
+                feedback
+              />
+            </div>
             <CommentMarkdown content={entry.comment.evidence} />
           </div>
         )}
