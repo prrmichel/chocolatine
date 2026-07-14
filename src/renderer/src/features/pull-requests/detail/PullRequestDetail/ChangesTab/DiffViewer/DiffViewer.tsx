@@ -712,7 +712,7 @@ const renderInlineComment= (
         <CopyButton
           text={buildAdoCommentDraft(entry.comment, entry.runNumber, filePath)}
           title={LABELS.copyCommentMarkdown}
-          className="diff-inline-comment-send-btn"
+          className="diff-inline-comment-header-copy-btn"
           feedback
         />
         {onSendToAdo && (

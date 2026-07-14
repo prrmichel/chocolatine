@@ -253,7 +253,7 @@ export default function RunResult({
                     <CopyButton
                       text={buildAdoCommentDraft(comment, runNumber)}
                       title={LABELS.copyCommentMarkdown}
-                      className="comment-read-btn"
+                      className="comment-header-copy-btn"
                       feedback
                     />
                   </span>

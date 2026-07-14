@@ -52,7 +52,7 @@ export default function FileLevelComments({
               <CopyButton
                 text={buildAdoCommentDraft(entry.comment, entry.runNumber)}
                 title={LABELS.copyCommentMarkdown}
-                className="diff-inline-comment-send-btn"
+                className="diff-inline-comment-header-copy-btn"
                 feedback
               />
               {onSendToAdo && (

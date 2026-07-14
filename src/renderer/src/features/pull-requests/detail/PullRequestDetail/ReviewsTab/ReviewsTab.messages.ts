@@ -97,6 +97,17 @@ export const LABELS = {
   copyMessage: 'Copy message',
   copySolution: 'Copy solution',
   copySuggestion: 'Copy suggestion',
+
+  // Export modal
+  exportComments: 'Export comments',
+  exportCommentsTitle: (runNumber: number) => `Export comments — Run ${runNumber}`,
+  selectAll: 'Select all',
+  deselectAll: 'Deselect all',
+  selectSeverity: (severity: string) => `Select all ${severity}`,
+  selectedCount: (n: number) => `${n} selected`,
+  copySelectedMarkdown: 'Copy selected as markdown',
+  closeExportModal: 'Close',
+  noCommentsToExport: 'No comments to export in this run.',
 } as const;
 
 // Template functions for dynamic labels

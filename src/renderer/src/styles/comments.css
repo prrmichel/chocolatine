@@ -123,6 +123,25 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.comment-header-copy-btn {
+  background: transparent;
+  border: 1px solid var(--vscode-border);
+  color: var(--vscode-accent);
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.comment-header-copy-btn:hover {
+  color: var(--vscode-text);
+  border-color: var(--vscode-accent);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .comment-read-badge {
   background: rgba(46, 204, 113, 0.12) !important;
   border-color: rgba(46, 204, 113, 0.3) !important;

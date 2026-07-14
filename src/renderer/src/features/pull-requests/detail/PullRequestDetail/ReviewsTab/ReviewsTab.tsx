@@ -14,6 +14,7 @@ import PromptPreviewModal, { PromptPreviewData } from '@renderer/features/shared
 import ReviewOptionsModal from '@renderer/features/shared/ReviewOptionsModal';
 import RunHeader from './RunHeader';
 import RunResult from './RunResult';
+import ExportCommentsModal from './ExportCommentsModal';
 import { LABELS, runSelectLabel, executedPromptTitle, severityFilterLabel } from './ReviewsTab.messages';
 import styles from './ReviewsTab.module.css';
 
@@ -87,6 +88,7 @@ export default function ReviewsTab({
   const [worktreeStatus, setWorktreeStatus] = useState<ReviewWorktreeStatus | null>(null);
   const [promptPreview, setPromptPreview] = useState<PromptPreviewData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ all: boolean; jobId: string | null } | null>(null);
+  const [exportModalRun, setExportModalRun] = useState<ReviewRun | null>(null);
   const customInstructionsRef = useRef<HTMLTextAreaElement | null>(null);
   const settings = useSettingsStore((state) => state.settings);
   const openSettings = useUIStore((state) => state.openSettings);
@@ -511,6 +513,7 @@ export default function ReviewsTab({
                     storedSkillNamesByMarker={storedSkillNamesByMarker}
                     onOpenFollowUp={onOpenFollowUp}
                     onOpenPrompt={() => openPromptPreview(run)}
+                    onExportComments={() => setExportModalRun(run)}
                     onMarkRead={getMarkReadHandler(run, run.filteredComments)}
                     onMarkUnread={getMarkUnreadHandler(run, run.filteredComments)}
                     isCollapsible
@@ -546,6 +549,7 @@ export default function ReviewsTab({
               storedSkillNamesByMarker={storedSkillNamesByMarker}
               onOpenFollowUp={onOpenFollowUp}
               onOpenPrompt={() => openPromptPreview(selectedRun)}
+              onExportComments={() => setExportModalRun(selectedRun)}
               onMarkRead={getMarkReadHandler(selectedRun)}
               onMarkUnread={getMarkUnreadHandler(selectedRun)}
               isCollapsible
@@ -571,6 +575,14 @@ export default function ReviewsTab({
       )}
 
       <PromptPreviewModal data={promptPreview} onClose={() => setPromptPreview(null)} />
+
+      {exportModalRun && (
+        <ExportCommentsModal
+          run={exportModalRun}
+          comments={exportModalRun.result?.comments ?? []}
+          onClose={() => setExportModalRun(null)}
+        />
+      )}
 
       {/* ── Review options modal ── */}
       {reviewOptionsOpen && (
