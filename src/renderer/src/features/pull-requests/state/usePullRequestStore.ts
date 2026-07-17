@@ -96,7 +96,7 @@ export const usePullRequestStore = create<PullRequestState>((set, get) => ({
   setActivePrSourceId: (id) => set({ activePrSourceId: id }),
 
   switchPrSource: async (id: string) => {
-    set({ activePrSourceId: id });
+    set({ activePrSourceId: id, prFilterAuthor: '' });
     await api.setActivePrSource(id);
     await get().loadPullRequests();
   },
