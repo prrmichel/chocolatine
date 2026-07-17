@@ -5,6 +5,22 @@ All notable changes to Chocolatine are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+
+### Added
+
+- **Deep code-review custom agent** with recursive methodology prompt that traces every modified hunk through its execution paths. The agent owns output formatting (JSON schema), so user prompts only need to define scope, focus areas, and tasks — no formatting instructions required.
+- **Copy review comments as markdown** — single-comment copy button for quick sharing, plus a bulk export modal for exporting all review comments at once.
+
+### Changed
+
+- **Prompt help modal** updated to reflect agent-owned output formatting. The "How to write your first PR Review prompt" guide no longer instructs users to include JSON schemas or strict-JSON output instructions.
+
+### Fixed
+
+- Broken Roadmap link removed from `docs/README.md`.
+- Missing Changelog link added to `docs/README.md`.
+
 ## [0.3.0]
 
 ### Added
