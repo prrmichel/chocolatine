@@ -4,7 +4,7 @@
 
 Chocolatine is a Windows desktop application that lets you review Azure DevOps pull requests using GitHub Copilot. It provides persistent review history, follow-up conversations, reusable prompt templates, a rules engine, and a general-purpose AI chat — all stored locally in SQLite.
 
-Current public posture: Windows-only, Azure DevOps-only, source-first, and self-build packaging only.
+Current public posture: Windows-only, Azure DevOps-only, source-first. GitHub Releases provide versioned source archives and changelogs; self-build packaging only.
 
 ---
 

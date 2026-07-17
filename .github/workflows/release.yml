@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect version bump
+        id: version
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${BEFORE_SHA}" == "0000000000000000000000000000000000000000" ]]; then
+            PREV_VERSION=''
+          else
+            PREV_VERSION=$(git show "${BEFORE_SHA}:package.json" | jq -er '.version | strings')
+          fi
+          CURR_VERSION=$(jq -er '.version | strings' package.json)
+
+          if [[ ! "${CURR_VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Invalid Semantic Version: ${CURR_VERSION}"
+            exit 1
+          fi
+
+          if [ -n "${PREV_VERSION}" ]; then
+            if [[ ! "${PREV_VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+              echo "::error::Invalid previous Semantic Version: ${PREV_VERSION}"
+              exit 1
+            fi
+
+            IFS='.' read -r PREV_MAJOR PREV_MINOR PREV_PATCH <<< "${PREV_VERSION}"
+            IFS='.' read -r CURR_MAJOR CURR_MINOR CURR_PATCH <<< "${CURR_VERSION}"
+            if (( CURR_MAJOR < PREV_MAJOR ||
+                  (CURR_MAJOR == PREV_MAJOR && CURR_MINOR < PREV_MINOR) ||
+                  (CURR_MAJOR == PREV_MAJOR && CURR_MINOR == PREV_MINOR && CURR_PATCH <= PREV_PATCH) )); then
+              echo "::error::Version must be greater than ${PREV_VERSION}; received ${CURR_VERSION}"
+              exit 1
+            fi
+          fi
+
+          echo "prev=${PREV_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "curr=${CURR_VERSION}" >> "$GITHUB_OUTPUT"
+          if [ "${PREV_VERSION}" != "${CURR_VERSION}" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+            echo "Version bumped from ${PREV_VERSION} to ${CURR_VERSION}"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+            echo "No version bump detected — skipping release"
+          fi
+
+      - name: Extract changelog notes
+        id: changelog
+        if: steps.version.outputs.bumped == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.curr }}
+        run: |
+          NOTES=$(awk -v header="## [${VERSION}]" '
+            BEGIN { found = 0 }
+            $0 == header { found = 1; next }
+            found && $0 ~ "^## \\[" { exit }
+            found { print }
+          ' CHANGELOG.md)
+
+          if ! printf '%s\n' "${NOTES}" | grep -q '[^[:space:]]'; then
+            echo "::error::No changelog section found for version ${VERSION} in CHANGELOG.md"
+            exit 1
+          fi
+
+          NOTES_FILE=$(mktemp)
+          echo "${NOTES}" > "${NOTES_FILE}"
+          echo "notes_file=${NOTES_FILE}" >> "$GITHUB_OUTPUT"
+          echo "Extracted changelog notes for v${VERSION}"
+
+      - name: Create draft pre-release
+        if: steps.version.outputs.bumped == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: v${{ steps.version.outputs.curr }}
+          RELEASE_NOTES_FILE: ${{ steps.changelog.outputs.notes_file }}
+          RELEASE_TARGET: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          RELEASE_VERSION="${RELEASE_TAG#v}"
+          RELEASE_MAJOR="${RELEASE_VERSION%%.*}"
+          RELEASE_FLAGS=(--draft)
+          if [ "${RELEASE_MAJOR}" = "0" ]; then
+            RELEASE_FLAGS+=(--prerelease)
+          fi
+
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            gh release edit "${RELEASE_TAG}" \
+              --title "${RELEASE_TAG}" \
+              --notes-file "${RELEASE_NOTES_FILE}" \
+              "${RELEASE_FLAGS[@]}"
+          else
+            gh release create "${RELEASE_TAG}" \
+              --title "${RELEASE_TAG}" \
+              --notes-file "${RELEASE_NOTES_FILE}" \
+              "${RELEASE_FLAGS[@]}" \
+              --target "${RELEASE_TARGET}"
+          fi
